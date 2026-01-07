@@ -621,12 +621,24 @@
             payMap
           })
         });
-        const result = await res.json();
+        const responseText = await res.text();
+        console.log("Raw GAS Response:", responseText);
+
+        let result;
+        try {
+          result = JSON.parse(responseText);
+        } catch (e) {
+          throw new Error("伺服器回應格式錯誤 (非 JSON)。回應內容：" + responseText.substring(0, 100));
+        }
+
         if (result.success) {
           alert("✅ 設定已成功同步至雲端！");
           liff.closeWindow();
-        } else throw new Error(result.msg);
+        } else {
+          throw new Error(result.msg || "伺服器未提供錯誤說明 (msg 為空)");
+        }
       } catch (err) {
+        console.error("Sync Error Detailed:", err);
         alert("儲存失敗：" + err.message);
         btn.disabled = false;
         btn.innerText = "儲存所有設定並同步";

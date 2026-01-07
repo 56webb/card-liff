@@ -643,10 +643,11 @@
         }
       } catch (err) {
         console.error("Sync Error Detailed:", err);
-        // 如果錯誤訊息太短，增加說明
+        let finalMsg = err.message;
         if (err.message === "Failed to fetch") {
-          alert("🔴 連線失敗：網頁無法連接到 GAS 伺服器，請檢查 GAS 網址是否正確且已設定為「任何人可存取」。");
+          finalMsg = "網頁無法連接到 GAS 伺服器，請檢查：\n1. GAS 網址是否正確\n2. 部署設定是否為「任何人 (Anyone)」";
         }
+        alert("❌ 儲存失敗\n\n原因：" + finalMsg);
         btn.disabled = false;
         btn.innerText = "儲存所有設定並同步";
       }

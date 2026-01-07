@@ -37,6 +37,8 @@
     .app-container {
       min-height: 100vh;
       padding: 20px;
+      padding-bottom: 100px;
+      /* 防止被底欄擋住 */
       display: flex;
       flex-direction: column;
     }
@@ -348,11 +350,12 @@
         </div>
       </div>
 
-      <!-- Bottom Drawer Mockup -->
-      <div class="glass-card" style="padding: 16px; margin-top: -10px;">
+      <!-- Bottom Drawer -->
+      <div class="glass-card"
+        style="padding: 16px; margin-top: -10px; position: sticky; bottom: 84px; z-index: 10; border-color: var(--primary);">
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <span id="cart-count">已選擇 0 張</span>
-          <button class="add-btn" style="background:#fff" onclick="switchView('view-payments')">下一步</button>
+          <button class="add-btn" style="background:#fff" onclick="switchView('view-payments')">下一步：綁定支付</button>
         </div>
       </div>
     </div>
@@ -429,7 +432,17 @@
 
     let selectedBank = "013 國泰世華"; // Default to a common one
 
-    const PAY_METHODS = ["LINE Pay", "街口支付", "Apple Pay", "Google Pay", "台新Pay"];
+    const PAY_METHODS = [
+      "LINE Pay",
+      "街口支付",
+      "全支付",
+      "Apple Pay/Google Pay/Samsung Pay",
+      "台灣 Pay",
+      "icash Pay / OPEN 錢包",
+      "全盈+PAY",
+      "悠遊付",
+      "Pi 拍錢包"
+    ];
 
     // State
     let myWallet = []; // { bank, name }
@@ -442,10 +455,35 @@
         const profile = await liff.getProfile();
         document.getElementById('user-name').innerText = `Hi, ${profile.displayName}`;
 
+        await loadSettings(); // 取得舊設定
         renderBanks();
         renderPaymentSetup();
-      } catch (e) { alert("LIFF 載入失敗: " + e.message); }
+        updateHomeStats();
+      } catch (e) {
+        alert("LIFF 載入失敗: " + e.message);
+      }
     };
+
+    async function loadSettings() {
+      const loadingEl = document.getElementById('count-cards');
+      loadingEl.innerText = "...";
+      try {
+        const idToken = liff.getIDToken();
+        const res = await fetch(GAS_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: "get_settings", idToken: idToken })
+        });
+        const data = await res.json();
+        if (data.success && data.settings) {
+          myWallet = data.settings.myWallet || [];
+          payMap = data.settings.payMap || {};
+          document.getElementById('cart-count').innerText = `已選擇 ${myWallet.length} 張`;
+        }
+      } catch (e) {
+        console.warn("無法取得預存設定", e);
+      }
+    }
 
     function switchView(viewId) {
       document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
@@ -577,6 +615,7 @@
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({
+            action: "save_settings",
             idToken,
             myWallet,
             payMap

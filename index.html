@@ -113,31 +113,65 @@
       margin-top: 4px;
     }
 
-    /* Bank/Card List */
-    .bank-selector {
-      display: flex;
-      overflow-x: auto;
-      gap: 10px;
-      margin-bottom: 20px;
-      padding-bottom: 5px;
-      scrollbar-width: none;
+    /* Search Bar */
+    .search-container {
+      margin-bottom: 16px;
+      position: relative;
     }
 
-    .bank-selector::-webkit-scrollbar {
-      display: none;
-    }
-
-    .bank-chip {
-      padding: 8px 16px;
-      border-radius: 50px;
-      background: var(--glass);
+    .search-input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.05);
       border: 1px solid var(--glass-border);
-      white-space: nowrap;
+      border-radius: 12px;
+      padding: 12px 16px;
+      color: var(--text);
+      font-family: inherit;
       font-size: 14px;
+      outline: none;
       transition: 0.3s;
     }
 
-    .bank-chip.active {
+    .search-input:focus {
+      border-color: var(--primary);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .bank-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
+      max-height: 250px;
+      overflow-y: auto;
+      padding-right: 5px;
+    }
+
+    .bank-grid::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .bank-grid::-webkit-scrollbar-thumb {
+      background: var(--glass-border);
+      border-radius: 10px;
+    }
+
+    .bank-card {
+      padding: 12px;
+      border-radius: 16px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      text-align: center;
+      font-size: 13px;
+      cursor: pointer;
+      transition: 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 60px;
+    }
+
+    .bank-card.active {
       background: var(--primary);
       color: #000;
       border-color: var(--primary);
@@ -300,7 +334,12 @@
         <h1>選擇您的卡片</h1>
         <p class="subtitle">將您擁有的卡片加入「我的卡包」</p>
 
-        <div class="bank-selector" id="bank-list">
+        <div class="search-container">
+          <input type="text" id="bank-search" class="search-input" placeholder="搜尋銀行名稱（如：中信、國泰）..."
+            oninput="filterBanks()">
+        </div>
+
+        <div class="bank-grid" id="bank-list">
           <!-- Banks will be injected -->
         </div>
 
@@ -350,14 +389,26 @@
     const LIFF_ID = "2008834693-FtenJAlU";
     const GAS_URL = "https://script.google.com/macros/s/AKfycbzbdllVZFKTHvFm8vlsrfYzHf0BtQjChEoHvVppm8x9T9ayJD0ndfZbFWaaqpMJ4OXp/exec";
 
-    // Mock Card Database
+    // Expanded Bank Database
     const CARD_DB = {
+      "臺灣銀行": ["一般信用卡"], "土地銀行": ["一般信用卡"], "合作金庫": ["一般信用卡"],
+      "第一銀行": ["一般信用卡"], "華南銀行": ["一般信用卡"], "彰化銀行": ["一般信用卡"],
+      "上海商銀": ["一般信用卡"], "台北富邦": ["J卡", "momo卡", "Open Possible卡"],
       "國泰世華": ["CUBE卡", "蝦皮購物聯名卡", "COSTCO聯名卡"],
+      "高雄銀行": ["一般信用卡"], "兆豐銀行": ["一般信用卡"], "臺灣企銀": ["一般信用卡"],
+      "渣打銀行": ["一般信用卡"], "台中銀行": ["一般信用卡"], "滙豐銀行": ["一般信用卡"],
+      "華泰銀行": ["一般信用卡"], "新光銀行": ["一般信用卡"], "陽信銀行": ["一般信用卡"],
+      "三信商銀": ["一般信用卡"], "聯邦銀行": ["吉鶴卡", "幸福M卡"], "遠東商銀": ["一般信用卡"],
+      "元大銀行": ["一般信用卡"], "永豐銀行": ["幣倍卡", "Sport卡"],
       "玉山銀行": ["Pi 拍錢包信用卡", "Only 卡", "U Bear 卡"],
-      "富邦銀行": ["J卡", "momo卡", "Open Possible卡"],
+      "凱基銀行": ["一般信用卡"], "星展銀行": ["eco永續卡"],
       "台新銀行": ["玫瑰Giving卡", "FlyGo卡", "黑狗卡"],
-      "中國信託": ["LINE Pay卡", "中油聯名卡", "ALL ME卡"]
+      "安泰銀行": ["一般信用卡"],
+      "中國信託": ["LINE Pay卡", "中油聯名卡", "ALL ME卡"],
+      "美國運通": ["一般信用卡"], "樂天信用卡": ["一般信用卡"], "台灣永旺": ["一般信用卡"]
     };
+
+    let selectedBank = Object.keys(CARD_DB)[0];
 
     const PAY_METHODS = ["LINE Pay", "街口支付", "Apple Pay", "Google Pay", "台新Pay"];
 
@@ -385,23 +436,37 @@
       document.getElementById('nav-' + viewId.split('-')[1]).classList.add('active');
     }
 
-    function renderBanks() {
+    function renderBanks(filter = "") {
       const container = document.getElementById('bank-list');
-      Object.keys(CARD_DB).forEach((bank, i) => {
-        const chip = document.createElement('div');
-        chip.className = `bank-chip ${i === 0 ? 'active' : ''}`;
-        chip.innerText = bank;
-        chip.onclick = () => {
-          document.querySelectorAll('.bank-chip').forEach(c => c.classList.remove('active'));
-          chip.classList.add('active');
+      container.innerHTML = '';
+
+      const banks = Object.keys(CARD_DB).filter(b => b.includes(filter));
+
+      banks.forEach((bank) => {
+        const card = document.createElement('div');
+        card.className = `bank-card ${bank === selectedBank ? 'active' : ''}`;
+        card.innerText = bank;
+        card.onclick = () => {
+          selectedBank = bank;
+          document.querySelectorAll('.bank-card').forEach(c => c.classList.remove('active'));
+          card.classList.add('active');
           renderCards(bank);
         };
-        container.appendChild(chip);
+        container.appendChild(card);
       });
-      renderCards(Object.keys(CARD_DB)[0]);
+
+      if (banks.length > 0 && !banks.includes(selectedBank)) {
+        // Optional: keep card list as is or clear it
+      }
+    }
+
+    function filterBanks() {
+      const q = document.getElementById('bank-search').value;
+      renderBanks(q);
     }
 
     function renderCards(bank) {
+      if (!bank) return;
       const container = document.getElementById('card-list');
       container.innerHTML = '';
       CARD_DB[bank].forEach(cardName => {

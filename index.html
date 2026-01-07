@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CardWay | 我的卡包設定</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #06c755;
+      --bg: #0f172a;
+      --glass: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --text: #f8fafc;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+
+    /* Glass Layout */
+    .app-container {
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .glass-card {
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Views */
+    .view {
+      display: none;
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Typography */
+    h1 {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    p.subtitle {
+      opacity: 0.6;
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    /* Home View Stats */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .stat-item {
+      background: rgba(255, 255, 255, 0.03);
+      padding: 16px;
+      border-radius: 16px;
+      text-align: center;
+    }
+
+    .stat-val {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .stat-lbl {
+      font-size: 12px;
+      opacity: 0.5;
+      margin-top: 4px;
+    }
+
+    /* Bank/Card List */
+    .bank-selector {
+      display: flex;
+      overflow-x: auto;
+      gap: 10px;
+      margin-bottom: 20px;
+      padding-bottom: 5px;
+      scrollbar-width: none;
+    }
+
+    .bank-selector::-webkit-scrollbar {
+      display: none;
+    }
+
+    .bank-chip {
+      padding: 8px 16px;
+      border-radius: 50px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      white-space: nowrap;
+      font-size: 14px;
+      transition: 0.3s;
+    }
+
+    .bank-chip.active {
+      background: var(--primary);
+      color: #000;
+      border-color: var(--primary);
+      font-weight: 600;
+    }
+
+    .card-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .card-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--glass-border);
+    }
+
+    .card-info h4 {
+      font-size: 15px;
+      margin-bottom: 2px;
+    }
+
+    .card-info p {
+      font-size: 12px;
+      opacity: 0.5;
+    }
+
+    .add-btn {
+      background: var(--primary);
+      color: #000;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    /* Payment Logic */
+    .pay-item {
+      margin-bottom: 12px;
+    }
+
+    .pay-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .chip-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .mini-chip {
+      padding: 6px 12px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .mini-chip.selected {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: rgba(6, 199, 85, 0.1);
+    }
+
+    /* Footer Nav */
+    .nav-bar {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      right: 20px;
+      height: 64px;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      opacity: 0.4;
+      transition: 0.3s;
+    }
+
+    .nav-item.active {
+      opacity: 1;
+      color: var(--primary);
+    }
+
+    .nav-item i {
+      font-size: 20px;
+      margin-bottom: 4px;
+    }
+
+    .nav-item span {
+      font-size: 10px;
+      font-weight: 600;
+    }
+
+    button.primary-btn {
+      width: 100%;
+      background: var(--primary);
+      color: #000;
+      border: none;
+      padding: 18px;
+      border-radius: 16px;
+      font-size: 16px;
+      font-weight: 600;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="app-container">
+    <!-- View 1: Home -->
+    <div id="view-home" class="view active">
+      <div class="glass-card">
+        <h1 id="user-name">載入中...</h1>
+        <p class="subtitle">歡迎來到您的專屬智慧卡包</p>
+
+        <div class="stat-grid">
+          <div class="stat-item">
+            <div class="stat-val" id="count-cards">0</div>
+            <div class="stat-lbl">張卡片</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-val" id="count-pay">0</div>
+            <div class="stat-lbl">個支付設定</div>
+          </div>
+        </div>
+
+        <div id="wallet-summary" style="opacity: 0.5; font-size: 14px; text-align: center;">
+          尚未設定任何卡片，快去挑選吧！
+        </div>
+      </div>
+      <button class="primary-btn" onclick="switchView('view-cards')">編輯我的卡片設定</button>
+    </div>
+
+    <!-- View 2: Card Selection (Shopping Cart Style) -->
+    <div id="view-cards" class="view">
+      <div class="glass-card">
+        <h1>選擇您的卡片</h1>
+        <p class="subtitle">將您擁有的卡片加入「我的卡包」</p>
+
+        <div class="bank-selector" id="bank-list">
+          <!-- Banks will be injected -->
+        </div>
+
+        <div class="card-list" id="card-list">
+          <!-- Cards will be injected -->
+        </div>
+      </div>
+
+      <!-- Bottom Drawer Mockup -->
+      <div class="glass-card" style="padding: 16px; margin-top: -10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span id="cart-count">已選擇 0 張</span>
+          <button class="add-btn" style="background:#fff" onclick="switchView('view-payments')">下一步</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- View 3: Payment Mapping -->
+    <div id="view-payments" class="view">
+      <div class="glass-card">
+        <h1>支付方式綁定</h1>
+        <p class="subtitle">哪些卡片已綁定到這些支付工具？</p>
+
+        <div id="payment-mapping-list">
+          <!-- Payment Mapping logic -->
+        </div>
+      </div>
+      <button class="primary-btn" id="save-btn" onclick="saveAll()">儲存所有設定並同步</button>
+    </div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <div class="nav-bar">
+    <div class="nav-item active" onclick="switchView('view-home')" id="nav-home">
+      <span>首頁</span>
+    </div>
+    <div class="nav-item" onclick="switchView('view-cards')" id="nav-cards">
+      <span>加卡</span>
+    </div>
+    <div class="nav-item" onclick="switchView('view-payments')" id="nav-payments">
+      <span>綁定</span>
+    </div>
+  </div>
+
+  <script>
+    // Configuration
+    const LIFF_ID = "2008834693-FtenJAlU";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzbdllVZFKTHvFm8vlsrfYzHf0BtQjChEoHvVppm8x9T9ayJD0ndfZbFWaaqpMJ4OXp/exec";
+
+    // Mock Card Database
+    const CARD_DB = {
+      "國泰世華": ["CUBE卡", "蝦皮購物聯名卡", "COSTCO聯名卡"],
+      "玉山銀行": ["Pi 拍錢包信用卡", "Only 卡", "U Bear 卡"],
+      "富邦銀行": ["J卡", "momo卡", "Open Possible卡"],
+      "台新銀行": ["玫瑰Giving卡", "FlyGo卡", "黑狗卡"],
+      "中國信託": ["LINE Pay卡", "中油聯名卡", "ALL ME卡"]
+    };
+
+    const PAY_METHODS = ["LINE Pay", "街口支付", "Apple Pay", "Google Pay", "台新Pay"];
+
+    // State
+    let myWallet = []; // { bank, name }
+    let payMap = {};   // { "LINE Pay": ["CUBE卡", ... ] }
+
+    window.onload = async () => {
+      try {
+        await liff.init({ liffId: LIFF_ID });
+        if (!liff.isLoggedIn()) { liff.login(); return; }
+        const profile = await liff.getProfile();
+        document.getElementById('user-name').innerText = `Hi, ${profile.displayName}`;
+
+        renderBanks();
+        renderPaymentSetup();
+      } catch (e) { alert("LIFF 載入失敗: " + e.message); }
+    };
+
+    function switchView(viewId) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.getElementById(viewId).classList.add('active');
+
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.getElementById('nav-' + viewId.split('-')[1]).classList.add('active');
+    }
+
+    function renderBanks() {
+      const container = document.getElementById('bank-list');
+      Object.keys(CARD_DB).forEach((bank, i) => {
+        const chip = document.createElement('div');
+        chip.className = `bank-chip ${i === 0 ? 'active' : ''}`;
+        chip.innerText = bank;
+        chip.onclick = () => {
+          document.querySelectorAll('.bank-chip').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          renderCards(bank);
+        };
+        container.appendChild(chip);
+      });
+      renderCards(Object.keys(CARD_DB)[0]);
+    }
+
+    function renderCards(bank) {
+      const container = document.getElementById('card-list');
+      container.innerHTML = '';
+      CARD_DB[bank].forEach(cardName => {
+        const item = document.createElement('div');
+        item.className = 'card-item';
+        const isSelected = myWallet.some(c => c.name === cardName);
+        item.innerHTML = `
+                    <div class="card-info">
+                        <h4>${cardName}</h4>
+                        <p>${bank}</p>
+                    </div>
+                    <button class="add-btn" onclick="toggleCard('${bank}', '${cardName}')" style="background:${isSelected ? '#1e293b' : 'var(--primary)'}; color:${isSelected ? '#fff' : '#000'}">
+                        ${isSelected ? '已移出' : '加入'}
+                    </button>
+                `;
+        container.appendChild(item);
+      });
+    }
+
+    function toggleCard(bank, name) {
+      const idx = myWallet.findIndex(c => c.name === name);
+      if (idx > -1) myWallet.splice(idx, 1);
+      else myWallet.push({ bank, name });
+
+      updateHomeStats();
+      renderCards(bank);
+      renderPaymentSetup(); // Update available chips in mapping
+      document.getElementById('cart-count').innerText = `已選擇 ${myWallet.length} 張`;
+    }
+
+    function renderPaymentSetup() {
+      const container = document.getElementById('payment-mapping-list');
+      container.innerHTML = '';
+
+      if (myWallet.length === 0) {
+        container.innerHTML = '<p style="text-align:center; opacity:0.5; margin-top:40px;">請先在「加卡」分頁挑選卡片</p>';
+        return;
+      }
+
+      PAY_METHODS.forEach(pay => {
+        const div = document.createElement('div');
+        div.className = 'pay-item';
+        div.innerHTML = `<div class="pay-header"><span>${pay}</span></div>`;
+
+        const chipContainer = document.createElement('div');
+        chipContainer.className = 'chip-container';
+
+        myWallet.forEach(card => {
+          const chip = document.createElement('div');
+          chip.className = 'mini-chip';
+          const isLinked = (payMap[pay] || []).includes(card.name);
+          if (isLinked) chip.classList.add('selected');
+          chip.innerText = card.name;
+          chip.onclick = () => {
+            if (!payMap[pay]) payMap[pay] = [];
+            const cIdx = payMap[pay].indexOf(card.name);
+            if (cIdx > -1) payMap[pay].splice(cIdx, 1);
+            else payMap[pay].push(card.name);
+            renderPaymentSetup();
+            updateHomeStats();
+          };
+          chipContainer.appendChild(chip);
+        });
+        div.appendChild(chipContainer);
+        container.appendChild(div);
+      });
+    }
+
+    function updateHomeStats() {
+      document.getElementById('count-cards').innerText = myWallet.length;
+      const linkedPayCount = Object.keys(payMap).filter(k => payMap[k].length > 0).length;
+      document.getElementById('count-pay').innerText = linkedPayCount;
+
+      const summary = document.getElementById('wallet-summary');
+      if (myWallet.length > 0) {
+        summary.innerHTML = myWallet.map(c => c.name).join('、');
+        summary.style.opacity = '0.8';
+      }
+    }
+
+    async function saveAll() {
+      const btn = document.getElementById('save-btn');
+      btn.disabled = true;
+      btn.innerText = "同步中...";
+
+      try {
+        const idToken = liff.getIDToken();
+        const res = await fetch(GAS_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            idToken,
+            myWallet,
+            payMap
+          })
+        });
+        const result = await res.json();
+        if (result.success) {
+          alert("✅ 設定已成功同步至雲端！");
+          liff.closeWindow();
+        } else throw new Error(result.msg);
+      } catch (err) {
+        alert("儲存失敗：" + err.message);
+        btn.disabled = false;
+        btn.innerText = "儲存所有設定並同步";
+      }
+    }
+  </script>
+</body>
+
+</html>

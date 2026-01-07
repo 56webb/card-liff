@@ -418,16 +418,22 @@
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <span id="cart-count">已選擇 0 張</span>
           <button class="add-btn" style="background:#fff" onclick="switchView('view-payments')">下一步：綁定支付</button>
+</div>
+    </div><!-- /view-cards -->
+
+    <!-- View 3: Payment Mapping -->
+    <div id="view-payments" class="view">
+      <div class="glass-card">
+        <h1>支付方式綁定</h1>
+        <p class="subtitle">哪些卡片已綁定到這些支付工具？</p>
+
+        <div id="payment-mapping-list">
+          <!-- Payment Mapping logic -->
         </div>
-      </div><!-- /view-cards -->
-
-      <!-- View 3: Payment Mapping -->
-      <div id="view-payments" class="view">
-        <div class="glass-card">
-          <h1>支付方式綁定</h1>
-          <p class="subtitle">哪些卡片已綁定到這些支付工具？</p>
-
-          <div id="payment-mapping-list">
+      </div>
+      <button class="primary-btn" id="save-btn" onclick="saveAll()">儲存所有設定並同步</button>
+    </div><!-- /view-payments -->
+  </div><!-- /app-container -->
             <!-- Payment Mapping logic -->
           </div>
         </div>

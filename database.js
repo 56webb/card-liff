@@ -14,6 +14,7 @@ if (!LINE_CHANNEL_ID || !SUPABASE_URL || !SUPABASE_KEY) {
 // ===============================================
 
 function doPost(e) {
+  if (!e || !e.postData) return ContentService.createTextOutput("No data received");
   try {
     const data = JSON.parse(e.postData.contents);
     const action = data.action || "save_settings"; // 預設為儲存

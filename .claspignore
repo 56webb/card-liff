@@ -1,0 +1,13 @@
+index.html
+disney/**
+.git/**
+node_modules/**
+package.json
+package-lock.json
+README.md
+implementation_plan.md
+task.md
+walkthrough.md
+bot_walkthrough.md
+gas_walkthrough.md
+brain/**

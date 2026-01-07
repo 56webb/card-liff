@@ -85,7 +85,7 @@ function getAllRulesFromSheet() {
 function callGemini(question, contextData) {
     if (!GEMINI_API_KEY) return "系統錯誤：未設定 GEMINI_API_KEY";
 
-    const modelName = 'gemini-2.5-flash';
+    const modelName = 'gemini-1.5-flash';
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${GEMINI_API_KEY}`;
 
     const prompt = `你是一位專業的信用卡理財顧問。請根據下方的【已知資訊】回答用戶的問題。
@@ -137,30 +137,30 @@ function replyLine(replyToken, messages) {
 
 // --- 測試用函式：請執行這個來檢查設定 ---
 function debugSettings() {
-  const props = PropertiesService.getScriptProperties();
-  const channelId = props.getProperty('LINE_CHANNEL_ID');
-  const sbUrl = props.getProperty('supabase_URL');
-  const sbKey = props.getProperty('service_role_Key');
+    const props = PropertiesService.getScriptProperties();
+    const channelId = props.getProperty('LINE_CHANNEL_ID');
+    const sbUrl = props.getProperty('supabase_URL');
+    const sbKey = props.getProperty('service_role_Key');
 
-  Logger.log("=== 設定檢查開始 ===");
-  
-  if (channelId) {
-    Logger.log("✅ LINE_CHANNEL_ID: 讀取成功 (長度: " + channelId.length + ")");
-  } else {
-    Logger.log("❌ LINE_CHANNEL_ID: 讀取失敗！(是 null)");
-  }
+    Logger.log("=== 設定檢查開始 ===");
 
-  if (sbUrl) {
-    Logger.log("✅ supabase_URL: 讀取成功 (" + sbUrl + ")");
-  } else {
-    Logger.log("❌ supabase_URL: 讀取失敗！");
-  }
+    if (channelId) {
+        Logger.log("✅ LINE_CHANNEL_ID: 讀取成功 (長度: " + channelId.length + ")");
+    } else {
+        Logger.log("❌ LINE_CHANNEL_ID: 讀取失敗！(是 null)");
+    }
 
-  if (sbKey) {
-    Logger.log("✅ service_role_Key: 讀取成功 (前五碼: " + sbKey.substring(0, 5) + "...)");
-  } else {
-    Logger.log("❌ service_role_Key: 讀取失敗！");
-  }
-  
-  Logger.log("=== 設定檢查結束 ===");
+    if (sbUrl) {
+        Logger.log("✅ supabase_URL: 讀取成功 (" + sbUrl + ")");
+    } else {
+        Logger.log("❌ supabase_URL: 讀取失敗！");
+    }
+
+    if (sbKey) {
+        Logger.log("✅ service_role_Key: 讀取成功 (前五碼: " + sbKey.substring(0, 5) + "...)");
+    } else {
+        Logger.log("❌ service_role_Key: 讀取失敗！");
+    }
+
+    Logger.log("=== 設定檢查結束 ===");
 }

@@ -689,7 +689,7 @@
         try {
           const idToken = liff.getIDToken();
           if (!idToken) {
-            alert("❌ 錯誤：無法取得身分識別 (ID Token)，請重新開啟網頁。");
+            showModal("❌ 錯誤：無法取得身分識別 (ID Token)，請重新開啟網頁。");
             return;
           }
 

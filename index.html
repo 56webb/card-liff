@@ -300,6 +300,64 @@
       font-weight: 600;
       margin-top: 20px;
     }
+
+    /* Custom Modal */
+    #custom-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      padding: 20px;
+    }
+
+    .modal-content {
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      padding: 24px;
+      border-radius: 20px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      animation: modalPop 0.3s ease-out;
+    }
+
+    @keyframes modalPop {
+      from {
+        transform: scale(0.9);
+        opacity: 0;
+      }
+
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .modal-btn {
+      margin-top: 20px;
+      padding: 12px 30px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .modal-msg {
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
   </style>
 </head>
 
@@ -361,180 +419,195 @@
           <span id="cart-count">已選擇 0 張</span>
           <button class="add-btn" style="background:#fff" onclick="switchView('view-payments')">下一步：綁定支付</button>
         </div>
-      </div>
-    </div>
+      </div><!-- /app-container -->
 
-    <!-- View 3: Payment Mapping -->
-    <div id="view-payments" class="view">
-      <div class="glass-card">
-        <h1>支付方式綁定</h1>
-        <p class="subtitle">哪些卡片已綁定到這些支付工具？</p>
-
-        <div id="payment-mapping-list">
-          <!-- Payment Mapping logic -->
+      <!-- Custom Modal Structure -->
+      <div id="custom-modal">
+        <div class="modal-content">
+          <div id="modal-msg" class="modal-msg"></div>
+          <button class="modal-btn" onclick="closeModal()">確定</button>
         </div>
       </div>
-      <button class="primary-btn" id="save-btn" onclick="saveAll()">儲存所有設定並同步</button>
+
+      <!-- View 3: Payment Mapping -->
+      <div id="view-payments" class="view">
+        <div class="glass-card">
+          <h1>支付方式綁定</h1>
+          <p class="subtitle">哪些卡片已綁定到這些支付工具？</p>
+
+          <div id="payment-mapping-list">
+            <!-- Payment Mapping logic -->
+          </div>
+        </div>
+        <button class="primary-btn" id="save-btn" onclick="saveAll()">儲存所有設定並同步</button>
+      </div>
     </div>
-  </div>
 
-  <!-- Bottom Nav -->
-  <div class="nav-bar">
-    <div class="nav-item active" onclick="switchView('view-home')" id="nav-home">
-      <span>首頁</span>
+    <!-- Bottom Nav -->
+    <div class="nav-bar">
+      <div class="nav-item active" onclick="switchView('view-home')" id="nav-home">
+        <span>首頁</span>
+      </div>
+      <div class="nav-item" onclick="switchView('view-cards')" id="nav-cards">
+        <span>加卡</span>
+      </div>
+      <div class="nav-item" onclick="switchView('view-payments')" id="nav-payments">
+        <span>綁定</span>
+      </div>
     </div>
-    <div class="nav-item" onclick="switchView('view-cards')" id="nav-cards">
-      <span>加卡</span>
-    </div>
-    <div class="nav-item" onclick="switchView('view-payments')" id="nav-payments">
-      <span>綁定</span>
-    </div>
-  </div>
 
-  <script>
-    // Configuration
-    const LIFF_ID = "2008834693-FtenJAlU";
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbzbdllVZFKTHvFm8vlsrfYzHf0BtQjChEoHvVppm8x9T9ayJD0ndfZbFWaaqpMJ4OXp/exec";
+    <script>
+      // Configuration
+      const LIFF_ID = "2008834693-FtenJAlU";
+      const GAS_URL = "https://script.google.com/macros/s/AKfycbzbdllVZFKTHvFm8vlsrfYzHf0BtQjChEoHvVppm8x9T9ayJD0ndfZbFWaaqpMJ4OXp/exec";
 
-    // Comprehensive Card Database
-    const CARD_DB = {
-      "004 臺灣銀行": ["導盲犬認同卡 (鈦金商旅卡)", "祝福認同卡", "一卡通鈦金商旅卡", "金采卡", "鈦金商旅卡"],
-      "005 土地銀行": ["icash2.0聯名鈦金卡", "麟洋羽球認同卡", "白沙屯拱天宮媽祖認同卡", "圓山大飯店聯名卡", "JCB極緻卡", "澎湖iPASS認同卡"],
-      "006 合作金庫": ["卡納赫拉的小動物悠遊聯名卡", "i運動卡", "樂活卡", "世界卡 (無加碼版/頂級客群)", "漢來美食聯名卡", "活力御璽卡"],
-      "007 第一銀行": ["iLEO信用卡", "桃園市市民卡聯名卡/認同卡", "義享天地聯名卡", "Living Green綠活卡", "鈦金商旅卡", "御璽商旅卡", "宜蘭認同卡", "GLORY+世界卡"],
-      "008 華南銀行": ["超鑽現金回饋卡", "SnY信用卡", "嘟嘟房聯名卡", "Rich+富家卡", "櫃買贏家生活卡", "i網購生活卡", "PGO聯名卡", "愛戀紅卡/酷愛黑卡"],
-      "009 彰化銀行": ["My樂現金回饋卡", "My購卡", "My拜卡", "馬偕認同卡", "商旅御璽卡", "一卡通御璽卡"],
-      "011 上海商銀": ["Teresa Card (簡單卡)", "小小兵信用卡 (Bello/BeeDo)", "簡單卡 (Simple Card)", "牙醫師認同卡", "世界卡"],
-      "012 台北富邦": ["富邦J卡 (J Cash/J Points)", "momo卡", "Open Possible聯名卡", "數位生活卡", "尊御世界卡", "廣三SOGO聯名卡", "台茂聯名卡"],
-      "013 國泰世華": ["CUBE卡", "亞洲萬里通聯名卡", "長榮航空聯名卡", "Costco聯名卡", "世界卡", "蝦皮購物聯名卡"],
-      "016 高雄銀行": ["超級大滿貫 (雙幣鈦金商旅卡)", "首馥卡", "高捷聯名卡"],
-      "017 兆豐銀行": ["利多御璽卡", "e秒刷鈦金卡", "Mega One一卡通聯名卡", "Gogoro聯名卡", "宇宙明星BT21信用卡", "統一7-ELEVEN獅聯名卡", "將來銀行聯名卡", "世界卡"],
-      "050 臺灣企銀": ["永續生活卡", "銀色之愛信用卡", "藝FUN卡", "北港朝天宮認同卡", "鈦金商旅卡"],
-      "052 渣打銀行": ["LINE Bank聯名卡", "渣打現金回饋御璽卡", "優先理財無限卡"],
-      "053 台中銀行": ["MySense御璽卡", "哆啦A夢卡 (JCB)", "媽祖平安卡", "樂購卡"],
-      "054 京城銀行": ["(無發行信用卡，僅發行VISA金融卡)"],
-      "081 滙豐銀行": ["旅人無限卡", "旅人御璽卡", "旅人輕旅卡", "匯鑽卡", "現金回饋御璽卡"],
-      "102 華泰銀行": ["JCB晶緻卡", "JCB白金卡"],
-      "103 新光銀行": ["寰宇現金回饋卡", "新光三越聯名卡", "OU點點卡", "悠遊聯名卡 (分期七卡)", "日本航空聯名卡", "鼎極卡 (無限/世界)"],
-      "108 陽信銀行": ["JCB哆啦A夢卡", "曜晶卡", "日本一卡", "彭村梅聯名卡", "一卡通聯名鈦金卡"],
-      "118 板信商銀": ["(無發行信用卡，僅發行VISA金融卡)"],
-      "147 三信商銀": ["樂活卡 (普卡/金卡/白金卡)"],
-      "803 聯邦銀行": ["吉鶴卡", "LINE Bank聯名卡", "賴點卡", "幸福M卡", "綠卡", "微風聯名卡", "農金認同卡"],
-      "805 遠東商銀": ["樂家+卡", "快樂信用卡", "遠東快樂信用卡", "C'est Moi我的卡"],
-      "806 元大銀行": ["鑽金智富卡", "元大鑽金卡", "Hello Kitty聯名卡", "愛金卡 (icash)", "分享黑啤卡", "樂遊卡"],
-      "807 永豐銀行": ["DAWAY卡", "SPORT卡", "幣倍卡", "大戶DAWHO信用卡", "夢行卡", "MITSUI OUTLET PARK聯名卡", "漢神巨蛋聯名卡", "保倍卡"],
-      "808 玉山銀行": ["Unicard", "U Bear信用卡", "Pi拍錢包信用卡", "熊本熊卡", "家樂福聯名卡", "星宇航空聯名卡", "無限卡/世界卡", "國民旅遊卡", "漢神巨蛋聯名卡", "南山人壽聯名卡"],
-      "809 凱基銀行": ["魔BUY卡", "魔FUN卡", "雙幣哩程卡"],
-      "810 星展銀行": ["eco永續卡", "飛行世界之極卡", "飛行世界商務卡", "饗樂生活卡", "PChome Prime聯名卡", "炫晶商務御璽卡", "everyday card"],
-      "812 台新銀行": ["太陽卡 (2024新權益版)", "玫瑰卡 (2024新權益版)", "@GoGo卡 (黑狗卡)", "FlyGo卡 (飛狗卡)", "街口聯名卡", "遠傳friDay聯名卡", "Gogoro Rewards聯名卡", "新光三越聯名卡", "燦坤生活聯名卡", "卓富無限卡"],
-      "816 安泰銀行": ["安泰悠遊分期卡", "安泰分期卡"],
-      "822 中國信託": ["LINE Pay信用卡", "中華航空聯名卡", "Agoda聯名卡", "中油聯名卡", "ALL ME卡", "Foodpanda聯名卡", "和泰聯名卡", "Mitsui Shopping Park LaLaport聯名卡", "TAIPEI 101 聯名卡", "漢神百貨聯名卡", "Global Mall聯名卡", "商旅鈦金卡", "英雄聯盟信用卡"],
-      "[無] 美國運通": ["美國運通簽帳白金卡 (大白)", "美國運通信用白金卡 (小白)", "美國運通長榮航空簽帳白金卡", "美國運通長榮航空簽帳金卡", "美國運通晶華珍饌信用白金卡", "美國運通簽帳金卡"],
-      "[無] 樂天信用卡": ["樂天信用卡 (多種卡面: 樂天胖達/桃猿/玫瑰金等)", "樂虎卡 (台灣虎航聯名)"],
-      "[無] 台灣永旺": ["AEON聯名卡"]
-    };
+      // Comprehensive Card Database
+      const CARD_DB = {
+        "004 臺灣銀行": ["導盲犬認同卡 (鈦金商旅卡)", "祝福認同卡", "一卡通鈦金商旅卡", "金采卡", "鈦金商旅卡"],
+        "005 土地銀行": ["icash2.0聯名鈦金卡", "麟洋羽球認同卡", "白沙屯拱天宮媽祖認同卡", "圓山大飯店聯名卡", "JCB極緻卡", "澎湖iPASS認同卡"],
+        "006 合作金庫": ["卡納赫拉的小動物悠遊聯名卡", "i運動卡", "樂活卡", "世界卡 (無加碼版/頂級客群)", "漢來美食聯名卡", "活力御璽卡"],
+        "007 第一銀行": ["iLEO信用卡", "桃園市市民卡聯名卡/認同卡", "義享天地聯名卡", "Living Green綠活卡", "鈦金商旅卡", "御璽商旅卡", "宜蘭認同卡", "GLORY+世界卡"],
+        "008 華南銀行": ["超鑽現金回饋卡", "SnY信用卡", "嘟嘟房聯名卡", "Rich+富家卡", "櫃買贏家生活卡", "i網購生活卡", "PGO聯名卡", "愛戀紅卡/酷愛黑卡"],
+        "009 彰化銀行": ["My樂現金回饋卡", "My購卡", "My拜卡", "馬偕認同卡", "商旅御璽卡", "一卡通御璽卡"],
+        "011 上海商銀": ["Teresa Card (簡單卡)", "小小兵信用卡 (Bello/BeeDo)", "簡單卡 (Simple Card)", "牙醫師認同卡", "世界卡"],
+        "012 台北富邦": ["富邦J卡 (J Cash/J Points)", "momo卡", "Open Possible聯名卡", "數位生活卡", "尊御世界卡", "廣三SOGO聯名卡", "台茂聯名卡"],
+        "013 國泰世華": ["CUBE卡", "亞洲萬里通聯名卡", "長榮航空聯名卡", "Costco聯名卡", "世界卡", "蝦皮購物聯名卡"],
+        "016 高雄銀行": ["超級大滿貫 (雙幣鈦金商旅卡)", "首馥卡", "高捷聯名卡"],
+        "017 兆豐銀行": ["利多御璽卡", "e秒刷鈦金卡", "Mega One一卡通聯名卡", "Gogoro聯名卡", "宇宙明星BT21信用卡", "統一7-ELEVEN獅聯名卡", "將來銀行聯名卡", "世界卡"],
+        "050 臺灣企銀": ["永續生活卡", "銀色之愛信用卡", "藝FUN卡", "北港朝天宮認同卡", "鈦金商旅卡"],
+        "052 渣打銀行": ["LINE Bank聯名卡", "渣打現金回饋御璽卡", "優先理財無限卡"],
+        "053 台中銀行": ["MySense御璽卡", "哆啦A夢卡 (JCB)", "媽祖平安卡", "樂購卡"],
+        "054 京城銀行": ["(無發行信用卡，僅發行VISA金融卡)"],
+        "081 滙豐銀行": ["旅人無限卡", "旅人御璽卡", "旅人輕旅卡", "匯鑽卡", "現金回饋御璽卡"],
+        "102 華泰銀行": ["JCB晶緻卡", "JCB白金卡"],
+        "103 新光銀行": ["寰宇現金回饋卡", "新光三越聯名卡", "OU點點卡", "悠遊聯名卡 (分期七卡)", "日本航空聯名卡", "鼎極卡 (無限/世界)"],
+        "108 陽信銀行": ["JCB哆啦A夢卡", "曜晶卡", "日本一卡", "彭村梅聯名卡", "一卡通聯名鈦金卡"],
+        "118 板信商銀": ["(無發行信用卡，僅發行VISA金融卡)"],
+        "147 三信商銀": ["樂活卡 (普卡/金卡/白金卡)"],
+        "803 聯邦銀行": ["吉鶴卡", "LINE Bank聯名卡", "賴點卡", "幸福M卡", "綠卡", "微風聯名卡", "農金認同卡"],
+        "805 遠東商銀": ["樂家+卡", "快樂信用卡", "遠東快樂信用卡", "C'est Moi我的卡"],
+        "806 元大銀行": ["鑽金智富卡", "元大鑽金卡", "Hello Kitty聯名卡", "愛金卡 (icash)", "分享黑啤卡", "樂遊卡"],
+        "807 永豐銀行": ["DAWAY卡", "SPORT卡", "幣倍卡", "大戶DAWHO信用卡", "夢行卡", "MITSUI OUTLET PARK聯名卡", "漢神巨蛋聯名卡", "保倍卡"],
+        "808 玉山銀行": ["Unicard", "U Bear信用卡", "Pi拍錢包信用卡", "熊本熊卡", "家樂福聯名卡", "星宇航空聯名卡", "無限卡/世界卡", "國民旅遊卡", "漢神巨蛋聯名卡", "南山人壽聯名卡"],
+        "809 凱基銀行": ["魔BUY卡", "魔FUN卡", "雙幣哩程卡"],
+        "810 星展銀行": ["eco永續卡", "飛行世界之極卡", "飛行世界商務卡", "饗樂生活卡", "PChome Prime聯名卡", "炫晶商務御璽卡", "everyday card"],
+        "812 台新銀行": ["太陽卡 (2024新權益版)", "玫瑰卡 (2024新權益版)", "@GoGo卡 (黑狗卡)", "FlyGo卡 (飛狗卡)", "街口聯名卡", "遠傳friDay聯名卡", "Gogoro Rewards聯名卡", "新光三越聯名卡", "燦坤生活聯名卡", "卓富無限卡"],
+        "816 安泰銀行": ["安泰悠遊分期卡", "安泰分期卡"],
+        "822 中國信託": ["LINE Pay信用卡", "中華航空聯名卡", "Agoda聯名卡", "中油聯名卡", "ALL ME卡", "Foodpanda聯名卡", "和泰聯名卡", "Mitsui Shopping Park LaLaport聯名卡", "TAIPEI 101 聯名卡", "漢神百貨聯名卡", "Global Mall聯名卡", "商旅鈦金卡", "英雄聯盟信用卡"],
+        "[無] 美國運通": ["美國運通簽帳白金卡 (大白)", "美國運通信用白金卡 (小白)", "美國運通長榮航空簽帳白金卡", "美國運通長榮航空簽帳金卡", "美國運通晶華珍饌信用白金卡", "美國運通簽帳金卡"],
+        "[無] 樂天信用卡": ["樂天信用卡 (多種卡面: 樂天胖達/桃猿/玫瑰金等)", "樂虎卡 (台灣虎航聯名)"],
+        "[無] 台灣永旺": ["AEON聯名卡"]
+      };
 
-    let selectedBank = "013 國泰世華"; // Default to a common one
+      let selectedBank = "013 國泰世華"; // Default to a common one
 
-    const PAY_METHODS = [
-      "LINE Pay",
-      "街口支付",
-      "全支付",
-      "Apple Pay/Google Pay/Samsung Pay",
-      "台灣 Pay",
-      "icash Pay / OPEN 錢包",
-      "全盈+PAY",
-      "悠遊付",
-      "Pi 拍錢包"
-    ];
+      const PAY_METHODS = [
+        "LINE Pay",
+        "街口支付",
+        "全支付",
+        "Apple Pay/Google Pay/Samsung Pay",
+        "台灣 Pay",
+        "icash Pay / OPEN 錢包",
+        "全盈+PAY",
+        "悠遊付",
+        "Pi 拍錢包"
+      ];
 
-    // State
-    let myWallet = []; // { bank, name }
-    let payMap = {};   // { "LINE Pay": ["CUBE卡", ... ] }
+      // State
+      let myWallet = []; // { bank, name }
+      let payMap = {};   // { "LINE Pay": ["CUBE卡", ... ] }
 
-    window.onload = async () => {
-      try {
-        await liff.init({ liffId: LIFF_ID });
-        if (!liff.isLoggedIn()) { liff.login(); return; }
-        const profile = await liff.getProfile();
-        document.getElementById('user-name').innerText = `Hi, ${profile.displayName}`;
+      window.onload = async () => {
+        try {
+          await liff.init({ liffId: LIFF_ID });
+          if (!liff.isLoggedIn()) { liff.login(); return; }
+          const profile = await liff.getProfile();
+          document.getElementById('user-name').innerText = `Hi, ${profile.displayName}`;
 
-        await loadSettings(); // 取得舊設定
-        renderBanks();
-        renderPaymentSetup();
-        updateHomeStats();
-      } catch (e) {
-        alert("LIFF 載入失敗: " + e.message);
-      }
-    };
-
-    async function loadSettings() {
-      const loadingEl = document.getElementById('count-cards');
-      loadingEl.innerText = "...";
-      try {
-        const idToken = liff.getIDToken();
-        const res = await fetch(GAS_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: "get_settings", idToken: idToken })
-        });
-        const data = await res.json();
-        if (data.success && data.settings) {
-          myWallet = data.settings.myWallet || [];
-          payMap = data.settings.payMap || {};
-          document.getElementById('cart-count').innerText = `已選擇 ${myWallet.length} 張`;
+          await loadSettings(); // 取得舊設定
+          renderBanks();
+          renderPaymentSetup();
+          updateHomeStats();
+        } catch (e) {
+          showModal("Liff 載入失敗: " + e.message);
         }
-      } catch (e) {
-        console.warn("無法取得預存設定", e);
+      };
+
+      function showModal(msg) {
+        document.getElementById('modal-msg').innerText = msg;
+        document.getElementById('custom-modal').style.display = 'flex';
       }
-    }
-
-    function switchView(viewId) {
-      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-      document.getElementById(viewId).classList.add('active');
-
-      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-      document.getElementById('nav-' + viewId.split('-')[1]).classList.add('active');
-    }
-
-    function renderBanks(filter = "") {
-      const container = document.getElementById('bank-list');
-      container.innerHTML = '';
-
-      const banks = Object.keys(CARD_DB).filter(b => b.includes(filter));
-
-      banks.forEach((bank) => {
-        const card = document.createElement('div');
-        card.className = `bank-card ${bank === selectedBank ? 'active' : ''}`;
-        card.innerText = bank;
-        card.onclick = () => {
-          selectedBank = bank;
-          document.querySelectorAll('.bank-card').forEach(c => c.classList.remove('active'));
-          card.classList.add('active');
-          renderCards(bank);
-        };
-        container.appendChild(card);
-      });
-
-      if (banks.length > 0 && !banks.includes(selectedBank)) {
-        // Optional: keep card list as is or clear it
+      function closeModal() {
+        document.getElementById('custom-modal').style.display = 'none';
       }
-    }
 
-    function filterBanks() {
-      const q = document.getElementById('bank-search').value;
-      renderBanks(q);
-    }
+      async function loadSettings() {
+        const loadingEl = document.getElementById('count-cards');
+        if (loadingEl) loadingEl.innerText = "...";
+        try {
+          const idToken = liff.getIDToken();
+          const res = await fetch(GAS_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ action: "get_settings", idToken: idToken })
+          });
+          const data = await res.json();
+          if (data.success && data.settings) {
+            myWallet = data.settings.myWallet || [];
+            payMap = data.settings.payMap || {};
+            document.getElementById('cart-count').innerText = `已選擇 ${myWallet.length} 張`;
+          }
+        } catch (e) {
+          console.warn("無法取得預存設定", e);
+        }
+      }
 
-    function renderCards(bank) {
-      if (!bank) return;
-      const container = document.getElementById('card-list');
-      container.innerHTML = '';
-      CARD_DB[bank].forEach(cardName => {
-        const item = document.createElement('div');
-        item.className = 'card-item';
-        const isSelected = myWallet.some(c => c.name === cardName);
-        item.innerHTML = `
+      function switchView(viewId) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById(viewId).classList.add('active');
+
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById('nav-' + viewId.split('-')[1]).classList.add('active');
+      }
+
+      function renderBanks(filter = "") {
+        const container = document.getElementById('bank-list');
+        container.innerHTML = '';
+
+        const banks = Object.keys(CARD_DB).filter(b => b.includes(filter));
+
+        banks.forEach((bank) => {
+          const card = document.createElement('div');
+          card.className = `bank-card ${bank === selectedBank ? 'active' : ''}`;
+          card.innerText = bank;
+          card.onclick = () => {
+            selectedBank = bank;
+            document.querySelectorAll('.bank-card').forEach(c => c.classList.remove('active'));
+            card.classList.add('active');
+            renderCards(bank);
+          };
+          container.appendChild(card);
+        });
+
+        if (banks.length > 0 && !banks.includes(selectedBank)) {
+          // Optional: keep card list as is or clear it
+        }
+      }
+
+      function filterBanks() {
+        const q = document.getElementById('bank-search').value;
+        renderBanks(q);
+      }
+
+      function renderCards(bank) {
+        if (!bank) return;
+        const container = document.getElementById('card-list');
+        container.innerHTML = '';
+        CARD_DB[bank].forEach(cardName => {
+          const item = document.createElement('div');
+          item.className = 'card-item';
+          const isSelected = myWallet.some(c => c.name === cardName);
+          item.innerHTML = `
                     <div class="card-info">
                         <h4>${cardName}</h4>
                         <p>${bank}</p>
@@ -543,125 +616,123 @@
                         ${isSelected ? '已移出' : '加入'}
                     </button>
                 `;
-        container.appendChild(item);
-      });
-    }
-
-    function toggleCard(bank, name) {
-      const idx = myWallet.findIndex(c => c.name === name);
-      if (idx > -1) myWallet.splice(idx, 1);
-      else myWallet.push({ bank, name });
-
-      updateHomeStats();
-      renderCards(bank);
-      renderPaymentSetup(); // Update available chips in mapping
-      document.getElementById('cart-count').innerText = `已選擇 ${myWallet.length} 張`;
-    }
-
-    function renderPaymentSetup() {
-      const container = document.getElementById('payment-mapping-list');
-      container.innerHTML = '';
-
-      if (myWallet.length === 0) {
-        container.innerHTML = '<p style="text-align:center; opacity:0.5; margin-top:40px;">請先在「加卡」分頁挑選卡片</p>';
-        return;
-      }
-
-      PAY_METHODS.forEach(pay => {
-        const div = document.createElement('div');
-        div.className = 'pay-item';
-        div.innerHTML = `<div class="pay-header"><span>${pay}</span></div>`;
-
-        const chipContainer = document.createElement('div');
-        chipContainer.className = 'chip-container';
-
-        myWallet.forEach(card => {
-          const chip = document.createElement('div');
-          chip.className = 'mini-chip';
-          const isLinked = (payMap[pay] || []).includes(card.name);
-          if (isLinked) chip.classList.add('selected');
-          chip.innerText = card.name;
-          chip.onclick = () => {
-            if (!payMap[pay]) payMap[pay] = [];
-            const cIdx = payMap[pay].indexOf(card.name);
-            if (cIdx > -1) payMap[pay].splice(cIdx, 1);
-            else payMap[pay].push(card.name);
-            renderPaymentSetup();
-            updateHomeStats();
-          };
-          chipContainer.appendChild(chip);
+          container.appendChild(item);
         });
-        div.appendChild(chipContainer);
-        container.appendChild(div);
-      });
-    }
-
-    function updateHomeStats() {
-      document.getElementById('count-cards').innerText = myWallet.length;
-      const linkedPayCount = Object.keys(payMap).filter(k => payMap[k].length > 0).length;
-      document.getElementById('count-pay').innerText = linkedPayCount;
-
-      const summary = document.getElementById('wallet-summary');
-      if (myWallet.length > 0) {
-        summary.innerHTML = myWallet.map(c => c.name).join('、');
-        summary.style.opacity = '0.8';
       }
-    }
 
-    async function saveAll() {
-      const btn = document.getElementById('save-btn');
-      btn.disabled = true;
-      btn.innerText = "同步中...";
+      function toggleCard(bank, name) {
+        const idx = myWallet.findIndex(c => c.name === name);
+        if (idx > -1) myWallet.splice(idx, 1);
+        else myWallet.push({ bank, name });
 
-      try {
-        const idToken = liff.getIDToken();
-        if (!idToken) {
-          alert("❌ 錯誤：無法取得身分識別 (ID Token)，請重新開啟網頁。");
+        updateHomeStats();
+        renderCards(bank);
+        renderPaymentSetup(); // Update available chips in mapping
+        document.getElementById('cart-count').innerText = `已選擇 ${myWallet.length} 張`;
+      }
+
+      function renderPaymentSetup() {
+        const container = document.getElementById('payment-mapping-list');
+        container.innerHTML = '';
+
+        if (myWallet.length === 0) {
+          container.innerHTML = '<p style="text-align:center; opacity:0.5; margin-top:40px;">請先在「加卡」分頁挑選卡片</p>';
           return;
         }
 
-        const res = await fetch(GAS_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({
-            action: "save_settings",
-            idToken,
-            myWallet,
-            payMap
-          })
+        PAY_METHODS.forEach(pay => {
+          const div = document.createElement('div');
+          div.className = 'pay-item';
+          div.innerHTML = `<div class="pay-header"><span>${pay}</span></div>`;
+
+          const chipContainer = document.createElement('div');
+          chipContainer.className = 'chip-container';
+
+          myWallet.forEach(card => {
+            const chip = document.createElement('div');
+            chip.className = 'mini-chip';
+            const isLinked = (payMap[pay] || []).includes(card.name);
+            if (isLinked) chip.classList.add('selected');
+            chip.innerText = card.name;
+            chip.onclick = () => {
+              if (!payMap[pay]) payMap[pay] = [];
+              const cIdx = payMap[pay].indexOf(card.name);
+              if (cIdx > -1) payMap[pay].splice(cIdx, 1);
+              else payMap[pay].push(card.name);
+              renderPaymentSetup();
+              updateHomeStats();
+            };
+            chipContainer.appendChild(chip);
+          });
+          div.appendChild(chipContainer);
+          container.appendChild(div);
         });
-
-        const responseText = await res.text();
-        console.log("Raw Sync Response:", responseText);
-
-        let result;
-        try {
-          result = JSON.parse(responseText);
-        } catch (e) {
-          alert("❌ 嚴重錯誤：伺服器未傳回正確的 JSON 格式。\n\n【回應內容】\n" + responseText.substring(0, 500));
-          throw new Error("Invalid JSON response");
-        }
-
-        if (result.success) {
-          alert("✅ 設定已成功同步至雲端！");
-          liff.closeWindow();
-        } else {
-          const detail = JSON.stringify(result, null, 2);
-          alert("❌ 儲存失敗！\n\n【詳細原因】\n" + detail);
-          throw new Error(result.msg || "Save unsuccessful");
-        }
-      } catch (err) {
-        console.error("Sync Error Detailed:", err);
-        let finalMsg = err.message;
-        if (err.message === "Failed to fetch") {
-          finalMsg = "網頁無法連接到 GAS 伺服器，請檢查：\n1. GAS 網址是否正確\n2. 部署設定是否為「任何人 (Anyone)」";
-        }
-        alert("❌ 儲存失敗\n\n原因：" + finalMsg);
-        btn.disabled = false;
-        btn.innerText = "儲存所有設定並同步";
       }
-    }
-  </script>
+
+      function updateHomeStats() {
+        document.getElementById('count-cards').innerText = myWallet.length;
+        const linkedPayCount = Object.keys(payMap).filter(k => payMap[k].length > 0).length;
+        document.getElementById('count-pay').innerText = linkedPayCount;
+
+        const summary = document.getElementById('wallet-summary');
+        if (myWallet.length > 0) {
+          summary.innerHTML = myWallet.map(c => c.name).join('、');
+          summary.style.opacity = '0.8';
+        }
+      }
+
+      async function saveAll() {
+        const btn = document.getElementById('save-btn');
+        btn.disabled = true;
+        btn.innerText = "同步中...";
+
+        try {
+          const idToken = liff.getIDToken();
+          if (!idToken) {
+            alert("❌ 錯誤：無法取得身分識別 (ID Token)，請重新開啟網頁。");
+            return;
+          }
+
+          const res = await fetch(GAS_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({
+              action: "save_settings",
+              idToken,
+              myWallet,
+              payMap
+            })
+          });
+
+          const responseText = await res.text();
+          console.log("Raw Sync Response:", responseText);
+
+          let result;
+          try {
+            result = JSON.parse(responseText);
+          } catch (e) {
+            showModal("❌ 伺服器格式錯誤\n\n內容：\n" + responseText.substring(0, 300));
+            throw new Error("Invalid JSON");
+          }
+
+          // 兼容 success 或 status: 'success'
+          if (result.success || result.status === 'success') {
+            showModal("✅ 設定已成功同步！");
+          } else {
+            showModal("❌ 儲存失敗！\n\n原因：" + (result.msg || JSON.stringify(result)));
+          }
+        } catch (err) {
+          let finalMsg = err.message;
+          if (err.message === "Failed to fetch") {
+            finalMsg = "連線失敗，請檢查網址或權限設定。";
+          }
+          showModal("❌ 操作失敗\n原因：" + finalMsg);
+        } finally {
+          btn.disabled = false;
+          btn.innerText = "儲存所有設定並同步";
+        }
+      }
+    </script>
 </body>
 
 </html>

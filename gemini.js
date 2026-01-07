@@ -9,10 +9,11 @@ const SHEET_ID = PROPS.getProperty('SHEET_ID');
 const GEMINI_API_KEY = PROPS.getProperty('GEMINI_API_KEY');
 
 function doPost(e) {
-    if (!e || !e.postData) return ContentService.createTextOutput("No post data");
+    if (!e || !e.postData) return ContentService.createTextOutput("No post data received");
     try {
         const json = JSON.parse(e.postData.contents);
         const events = json.events;
+        if (!events) return ContentService.createTextOutput("No events");
         for (let i = 0; i < events.length; i++) {
             const event = events[i];
             if (event.type === 'message' && event.message.type === 'text') {
@@ -58,28 +59,36 @@ function handleMessage(event) {
 
 function searchDetailsFromSheet(keyword) {
     if (!SHEET_ID) return [];
-    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('Rules');
-    if (!sheet) return [];
-    const data = sheet.getDataRange().getValues();
-    data.shift(); // 移除標題
-    const normK = keyword.toLowerCase().replace(/[\s\-]/g, '');
+    try {
+        const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('Rules');
+        if (!sheet) return [];
+        const data = sheet.getDataRange().getValues();
+        data.shift(); // 移除標題
+        const normK = keyword.toLowerCase().replace(/[\s\-]/g, '');
 
-    return data.filter(row => {
-        const category = String(row[1]).toLowerCase().replace(/[\s\-]/g, '');
-        const item = String(row[2]).toLowerCase().replace(/[\s\-]/g, '');
-        const detail = String(row[3]).toLowerCase().replace(/[\s\-]/g, '');
-        return category.includes(normK) || item.includes(normK) || detail.includes(normK);
-    }).map(row => ({ plan: row[0], category: row[1], item: row[2], detail: row[3] }));
+        return data.filter(row => {
+            const category = String(row[1]).toLowerCase().replace(/[\s\-]/g, '');
+            const item = String(row[2]).toLowerCase().replace(/[\s\-]/g, '');
+            const detail = String(row[3]).toLowerCase().replace(/[\s\-]/g, '');
+            return category.includes(normK) || item.includes(normK) || detail.includes(normK);
+        }).map(row => ({ plan: row[0], category: row[1], item: row[2], detail: row[3] }));
+    } catch (e) {
+        Logger.log("Search Error: " + e.message);
+        return [];
+    }
 }
 
 function getAllRulesFromSheet() {
     if (!SHEET_ID) return [];
-    const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('Rules');
-    if (!sheet) return [];
-    const data = sheet.getDataRange().getValues();
-    data.shift();
-    // 簡化大綱節省 Token
-    return data.map(row => ({ plan: row[0], category: row[1], item: row[2] }));
+    try {
+        const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('Rules');
+        if (!sheet) return [];
+        const data = sheet.getDataRange().getValues();
+        data.shift();
+        return data.map(row => ({ plan: row[0], category: row[1], item: row[2] }));
+    } catch (e) {
+        return [];
+    }
 }
 
 function callGemini(question, contextData) {
@@ -102,7 +111,7 @@ ${contextData}
 0. 要判斷客戶的餐廳是否在飯店內，要確認是否特例。
 1. 直接給出結論（刷哪個方案最划算並列出％數）。
 2. 如果用戶可能打錯字（例如將「全聯」打成「全連」），請主動修正並根據【已知資訊】給出正確建議。
-3. 如果資訊中真的找不到對應項目，請告知這可能僅適用「一般消費 (0.3%回饋)」並提醒用戶這張卡規則複雜，提供資訊僅供參考一切以官網為主https://www.cathay-cube.com.tw/cathaybk/personal/product/credit-card/cards/cube-list。
+3. 如果資訊中真的找不到對應項目，請告知這可能僅適用「一般消費 (0.3%回饋)」並提醒用戶這張卡規則複雜，提供資訊僅供參考一切以官網為主 https://www.cathay-cube.com.tw/cathaybk/personal/product/credit-card/cards/cube-list。
 4. 使用台灣繁體中文，語氣親切專業。
 5. 字數限制在150字內`;
 
@@ -118,7 +127,7 @@ ${contextData}
         const res = UrlFetchApp.fetch(url, params);
         const code = res.getResponseCode();
         const body = res.getContentText();
-        if (code !== 200) return `AI 連線失敗 (Code ${code})。請檢查 API Key 或配額。`;
+        if (code !== 200) return `AI 連線失敗 (Code ${code})。請檢查 API Key 或配額。回應內容：${body}`;
         const json = JSON.parse(body);
         return json.candidates[0].content.parts[0].text;
     } catch (e) {
@@ -127,6 +136,7 @@ ${contextData}
 }
 
 function replyLine(replyToken, messages) {
+    if (!CHANNEL_ACCESS_TOKEN) return;
     UrlFetchApp.fetch('https://api.line.me/v2/bot/message/reply', {
         method: 'post',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + CHANNEL_ACCESS_TOKEN },
@@ -135,32 +145,15 @@ function replyLine(replyToken, messages) {
     });
 }
 
-// --- 測試用函式：請執行這個來檢查設定 ---
 function debugSettings() {
     const props = PropertiesService.getScriptProperties();
-    const channelId = props.getProperty('LINE_CHANNEL_ID');
-    const sbUrl = props.getProperty('supabase_URL');
-    const sbKey = props.getProperty('service_role_Key');
+    const channelToken = props.getProperty('CHANNEL_ACCESS_TOKEN');
+    const sheetId = props.getProperty('SHEET_ID');
+    const geminiKey = props.getProperty('GEMINI_API_KEY');
 
-    Logger.log("=== 設定檢查開始 ===");
-
-    if (channelId) {
-        Logger.log("✅ LINE_CHANNEL_ID: 讀取成功 (長度: " + channelId.length + ")");
-    } else {
-        Logger.log("❌ LINE_CHANNEL_ID: 讀取失敗！(是 null)");
-    }
-
-    if (sbUrl) {
-        Logger.log("✅ supabase_URL: 讀取成功 (" + sbUrl + ")");
-    } else {
-        Logger.log("❌ supabase_URL: 讀取失敗！");
-    }
-
-    if (sbKey) {
-        Logger.log("✅ service_role_Key: 讀取成功 (前五碼: " + sbKey.substring(0, 5) + "...)");
-    } else {
-        Logger.log("❌ service_role_Key: 讀取失敗！");
-    }
-
-    Logger.log("=== 設定檢查結束 ===");
+    Logger.log("=== CardWay AI Bot 設定檢查 ===");
+    Logger.log("1. CHANNEL_ACCESS_TOKEN: " + (channelToken ? "✅ 存在" : "❌ 缺失"));
+    Logger.log("2. SHEET_ID: " + (sheetId ? "✅ " + sheetId : "❌ 缺失"));
+    Logger.log("3. GEMINI_API_KEY: " + (geminiKey ? "✅ 存在 (前4碼: " + geminiKey.substring(0, 4) + ")" : "❌ 缺失"));
+    Logger.log("============================");
 }

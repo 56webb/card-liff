@@ -522,12 +522,23 @@
           await liff.init({ liffId: LIFF_ID });
           if (!liff.isLoggedIn()) { liff.login(); return; }
           const profile = await liff.getProfile();
-          document.getElementById('user-name').innerText = `Hi, ${profile.displayName}`;
 
-          await loadSettings(); // 取得舊設定
+          // Sync user name across displays
+          const nameStr = `Hi, ${profile.displayName}`;
+          const headName = document.getElementById('user-name');
+          if (headName) headName.innerText = nameStr;
+          const footerName = document.getElementById('user-name-display');
+          if (footerName) footerName.innerText = nameStr;
+
+          await loadSettings();
           renderBanks();
           renderPaymentSetup();
           updateHomeStats();
+
+          // Initial card render
+          if (CARD_DB[selectedBank]) {
+            renderCards(selectedBank);
+          }
         } catch (e) {
           showModal("Liff 載入失敗: " + e.message);
         }
@@ -572,25 +583,28 @@
 
       function renderBanks(filter = "") {
         const container = document.getElementById('bank-list');
+        if (!container) return;
         container.innerHTML = '';
 
-        const banks = Object.keys(CARD_DB).filter(b => b.includes(filter));
+        const searchKey = filter.trim().toLowerCase();
+        const banks = Object.keys(CARD_DB).filter(b => b.toLowerCase().includes(searchKey));
 
         banks.forEach((bank) => {
           const card = document.createElement('div');
           card.className = `bank-card ${bank === selectedBank ? 'active' : ''}`;
           card.innerText = bank;
-          card.onclick = () => {
+          card.addEventListener('click', () => {
             selectedBank = bank;
             document.querySelectorAll('.bank-card').forEach(c => c.classList.remove('active'));
             card.classList.add('active');
             renderCards(bank);
-          };
+          });
           container.appendChild(card);
         });
 
+        // Auto-select first bank if filtering results change or current selected not in results
         if (banks.length > 0 && !banks.includes(selectedBank)) {
-          // Optional: keep card list as is or clear it
+          // Keep current view or maybe update? Usually better to keep current if not explicitly filtered out
         }
       }
 
@@ -600,22 +614,30 @@
       }
 
       function renderCards(bank) {
-        if (!bank) return;
+        if (!bank || !Array.isArray(CARD_DB[bank])) return;
         const container = document.getElementById('card-list');
+        if (!container) return;
         container.innerHTML = '';
+
         CARD_DB[bank].forEach(cardName => {
           const item = document.createElement('div');
           item.className = 'card-item';
+
           const isSelected = myWallet.some(c => c.name === cardName);
-          item.innerHTML = `
-                    <div class="card-info">
-                        <h4>${cardName}</h4>
-                        <p>${bank}</p>
-                    </div>
-                    <button class="add-btn" onclick="toggleCard('${bank}', '${cardName}')" style="background:${isSelected ? '#1e293b' : 'var(--primary)'}; color:${isSelected ? '#fff' : '#000'}">
-                        ${isSelected ? '已移出' : '加入'}
-                    </button>
-                `;
+
+          const info = document.createElement('div');
+          info.className = 'card-info';
+          info.innerHTML = `<h4>${cardName}</h4><p>${bank}</p>`;
+
+          const btn = document.createElement('button');
+          btn.className = 'add-btn';
+          btn.style.background = isSelected ? '#1e293b' : 'var(--primary)';
+          btn.style.color = isSelected ? '#fff' : '#000';
+          btn.textContent = isSelected ? '已移出' : '加入';
+          btn.addEventListener('click', () => toggleCard(bank, cardName));
+
+          item.appendChild(info);
+          item.appendChild(btn);
           container.appendChild(item);
         });
       }
@@ -654,14 +676,14 @@
             const isLinked = (payMap[pay] || []).includes(card.name);
             if (isLinked) chip.classList.add('selected');
             chip.innerText = card.name;
-            chip.onclick = () => {
+            chip.addEventListener('click', () => {
               if (!payMap[pay]) payMap[pay] = [];
               const cIdx = payMap[pay].indexOf(card.name);
               if (cIdx > -1) payMap[pay].splice(cIdx, 1);
               else payMap[pay].push(card.name);
               renderPaymentSetup();
               updateHomeStats();
-            };
+            });
             chipContainer.appendChild(chip);
           });
           div.appendChild(chipContainer);

@@ -628,18 +628,25 @@
         try {
           result = JSON.parse(responseText);
         } catch (e) {
-          throw new Error("伺服器回應格式錯誤 (非 JSON)。回應內容：" + responseText.substring(0, 100));
+          // 如果解析 JSON 失敗，極大機率是 GAS 拋出了 HTML 格式的拋錯（譬如未授權或部署問題）
+          alert("❌ 嚴重錯誤：伺服器回應了非預期的格式。\n\n回應內容摘要：\n" + responseText.substring(0, 300));
+          throw new Error("伺服器回應非 JSON 格式");
         }
 
         if (result.success) {
           alert("✅ 設定已成功同步至雲端！");
           liff.closeWindow();
         } else {
-          throw new Error(result.msg || "伺服器未提供錯誤說明 (msg 為空)");
+          const errMsg = result.msg || "未知錯誤 (可能未定義 msg)";
+          alert("❌ 儲存失敗：\n原因：" + errMsg);
+          throw new Error(errMsg);
         }
       } catch (err) {
         console.error("Sync Error Detailed:", err);
-        alert("儲存失敗：" + err.message);
+        // 如果錯誤訊息太短，增加說明
+        if (err.message === "Failed to fetch") {
+          alert("🔴 連線失敗：網頁無法連接到 GAS 伺服器，請檢查 GAS 網址是否正確且已設定為「任何人可存取」。");
+        }
         btn.disabled = false;
         btn.innerText = "儲存所有設定並同步";
       }

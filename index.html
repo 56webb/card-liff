@@ -351,6 +351,10 @@
       </div>
 
       <!-- Bottom Drawer -->
+      <div class="glass-card" style="padding: 16px; margin-bottom: 20px;">
+        <h2 id="user-name-display" style="margin:0; font-size: 24px;">Hi, User</h2>
+        <p style="opacity: 0.7; margin: 4px 0 0 0; font-size: 14px;">已安全連線 v1.7</p>
+      </div>
       <div class="glass-card"
         style="padding: 16px; margin-top: -10px; position: sticky; bottom: 84px; z-index: 10; border-color: var(--primary);">
         <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -611,6 +615,11 @@
 
       try {
         const idToken = liff.getIDToken();
+        if (!idToken) {
+          alert("❌ 錯誤：無法取得身分識別 (ID Token)，請重新開啟網頁。");
+          return;
+        }
+
         const res = await fetch(GAS_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -621,25 +630,25 @@
             payMap
           })
         });
+
         const responseText = await res.text();
-        console.log("Raw GAS Response:", responseText);
+        console.log("Raw Sync Response:", responseText);
 
         let result;
         try {
           result = JSON.parse(responseText);
         } catch (e) {
-          // 如果解析 JSON 失敗，極大機率是 GAS 拋出了 HTML 格式的拋錯（譬如未授權或部署問題）
-          alert("❌ 嚴重錯誤：伺服器回應了非預期的格式。\n\n回應內容摘要：\n" + responseText.substring(0, 300));
-          throw new Error("伺服器回應非 JSON 格式");
+          alert("❌ 嚴重錯誤：伺服器未傳回正確的 JSON 格式。\n\n【回應內容】\n" + responseText.substring(0, 500));
+          throw new Error("Invalid JSON response");
         }
 
         if (result.success) {
           alert("✅ 設定已成功同步至雲端！");
           liff.closeWindow();
         } else {
-          const errMsg = result.msg || "未知錯誤 (可能未定義 msg)";
-          alert("❌ 儲存失敗：\n原因：" + errMsg);
-          throw new Error(errMsg);
+          const detail = JSON.stringify(result, null, 2);
+          alert("❌ 儲存失敗！\n\n【詳細原因】\n" + detail);
+          throw new Error(result.msg || "Save unsuccessful");
         }
       } catch (err) {
         console.error("Sync Error Detailed:", err);

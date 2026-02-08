@@ -892,6 +892,12 @@
                         style="font-size:13px; color:var(--text-sub); display:block; margin:16px 0 8px;">告訴卡衛你信用卡方面的小痛點</label>
                     <textarea id="pain-points" class="form-textarea" placeholder="例如：回饋計算太複雜、優惠太多記不住..."
                         onchange="updateProfile()"></textarea>
+
+                    <button id="submit-survey-btn" class="primary-btn"
+                        style="margin-top:16px; width:100%; background:var(--primary); color:#fff;"
+                        onclick="submitSurvey()">
+                        <i class="fas fa-paper-plane" style="margin-right: 8px;"></i>送出問卷
+                    </button>
                 </div>
 
             </div>
@@ -1867,6 +1873,86 @@
                 document.querySelectorAll('[data-price]').forEach(e => {
                     if (parseInt(e.dataset.price) === userProfile.supportPrice) e.classList.add('selected');
                 });
+            }
+        }
+        async function submitSurvey() {
+            const features = document.getElementById('wanted-features').value;
+            const painPoints = document.getElementById('pain-points').value;
+            const supportPrice = userProfile.supportPrice; // Can be undefined
+
+            if (!features && !painPoints && !supportPrice) {
+                showToast("⚠️ 請至少填寫一項內容");
+                return;
+            }
+
+            const btn = document.getElementById('submit-survey-btn');
+            const oldText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 送出中...';
+            btn.disabled = true;
+
+            const idToken = liff.getIDToken();
+            const decoded = liff.getDecodedIDToken();
+            const userId = decoded ? decoded.sub : (IS_MOCK ? "MOCK_USER" : "UNKNOWN");
+            const userName = decoded ? decoded.name : "Guest";
+            const timestamp = new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' });
+
+            // Generate Markdown Content
+            const mdContent = `
+# 📝 問卷回饋
+- **用戶**: ${userName}
+- **ID**: ${userId}
+- **時間**: ${timestamp}
+
+## 💡 功能許願
+${features || "無"}
+
+## 💰 願付價格
+${supportPrice ? '$' + supportPrice : "未選擇"}
+
+## 😣 痛點
+${painPoints || "無"}
+
+## 🎒 錢包狀態
+- **卡片數**: ${myWallet.length}
+- **綁定數**: ${Object.values(payMap).reduce((acc, curr) => acc + curr.length, 0)}
+- **主力卡**: ${userProfile.mainCards ? userProfile.mainCards.join(", ") : "無"}
+            `.trim();
+
+            if (IS_MOCK) {
+                console.log("Mock Submit Survey:\n", mdContent);
+                setTimeout(() => {
+                    btn.innerHTML = '✅ 已送出';
+                    showToast("✅ 問卷已送出 (Mock)");
+                }, 1000);
+                return;
+            }
+
+            try {
+                const res = await fetch(GAS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({
+                        action: "submit_survey",
+                        idToken: idToken,
+                        userId: userId,
+                        userName: userName,
+                        mdContent: mdContent
+                    })
+                });
+
+                const data = await res.json();
+
+                if (data.success || data.status === 'success') {
+                    btn.innerHTML = '✅ 已送出';
+                    showToast("✅ 問卷已成功送出！");
+                } else {
+                    throw new Error(data.msg || "Server Error");
+                }
+            } catch (e) {
+                console.error("Survey Error", e);
+                btn.innerHTML = oldText;
+                btn.disabled = false;
+                showToast("❌ 送出失敗: " + e.message);
             }
         }
     </script>

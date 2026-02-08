@@ -2,1218 +2,1594 @@
 <html lang="zh-TW">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CardWay | 日旅神卡攻略 (熊本熊/吉鶴/星展)</title>
-    <!-- 引入 Google Fonts -->
-    <link
-        href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Outfit:wght@400;600&display=swap"
-        rel="stylesheet">
-    <!-- 引入 FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            /* 配色主題 */
-            --primary: #DC2626;
-            /* 熊本熊紅 */
-            --secondary: #BE123C;
-            /* 吉鶴深紅 */
-            --eco: #0D9488;
-            /* 星展 Eco 綠 (Teal) */
-
-            --bg: #F3F4F6;
-            --surface: #FFFFFF;
-            --text-main: #1F2937;
-            --text-sub: #6B7280;
-            --border: #E5E7EB;
-            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-            --danger: #EF4444;
-            --warning: #F59E0B;
-            --success: #10B981;
-            --tag-bg: #FEF2F2;
-            --tag-text: #991B1B;
-            --ai-color: #7C3AED;
-            --ai-bg: #F3E8FF;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            font-family: 'Outfit', 'Noto Sans TC', sans-serif;
-            background: var(--bg);
-            color: var(--text-main);
-            padding-bottom: 100px;
-        }
-
-        .header {
-            background: var(--surface);
-            padding: 16px 20px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: var(--shadow-sm);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 3px solid var(--primary);
-        }
-
-        .brand {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--text-main);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .brand i {
-            color: var(--primary);
-            font-size: 24px;
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        /* AI Button in Header */
-        .ai-header-btn {
-            background: linear-gradient(135deg, #7C3AED, #DB2777);
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            box-shadow: 0 2px 5px rgba(124, 58, 237, 0.3);
-            animation: pulse 2s infinite;
-        }
-
-        /* Settings Button */
-        .settings-btn {
-            background: #F3F4F6;
-            color: var(--text-main);
-            border: 1px solid var(--border);
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        @keyframes pulse {
-            0% {
-                box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.4);
-            }
-
-            70% {
-                box-shadow: 0 0 0 6px rgba(124, 58, 237, 0);
-            }
-
-            100% {
-                box-shadow: 0 0 0 0 rgba(124, 58, 237, 0);
-            }
-        }
-
-        /* Card Styles */
-        .card-target {
-            background: var(--surface);
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 16px;
-            box-shadow: var(--shadow-sm);
-            border: 1px solid var(--border);
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* Specific Styles for Card Types */
-        .card-target[data-type="熊本熊"] {
-            border-left: 5px solid #EF4444;
-        }
-
-        .card-target[data-type="吉鶴卡"] {
-            border-left: 5px solid #BE123C;
-        }
-
-        .card-target[data-type="星展 eco 卡"] {
-            border-left: 5px solid #0D9488;
-            /* Teal */
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 8px;
-        }
-
-        .card-title-group {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .card-type-label {
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--text-sub);
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .card-title {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--text-main);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .period-tag {
-            display: inline-block;
-            font-size: 12px;
-            padding: 2px 8px;
-            border-radius: 12px;
-            background: var(--tag-bg);
-            color: var(--tag-text);
-            font-weight: 600;
-            width: fit-content;
-        }
-
-        .advisor-note {
-            background: #F9FAFB;
-            border-left: 3px solid var(--text-sub);
-            padding: 8px 12px;
-            margin-top: 12px;
-            font-size: 13px;
-            color: var(--text-sub);
-            line-height: 1.5;
-            border-radius: 0 4px 4px 0;
-        }
-
-        .advisor-note strong {
-            color: var(--text-main);
-            display: block;
-            margin-bottom: 2px;
-        }
-
-        .delete-btn {
-            color: #9CA3AF;
-            cursor: pointer;
-            padding: 8px;
-            transition: color 0.2s;
-        }
-
-        .delete-btn:hover {
-            color: var(--danger);
-        }
-
-        /* Progress Bar */
-        .progress-section {
-            margin: 16px 0;
-        }
-
-        .progress-bar-bg {
-            background: #E5E7EB;
-            height: 12px;
-            border-radius: 6px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            background: var(--primary);
-            width: 0%;
-            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s;
-        }
-
-        /* Custom progress bar colors based on card type context if needed, 
-           currently using generic logic in JS */
-
-        .stats-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 14px;
-            margin-top: 8px;
-            font-weight: 500;
-        }
-
-        .current-spend {
-            font-size: 28px;
-            font-weight: 800;
-            margin: 4px 0;
-            color: var(--text-main);
-            font-family: 'Outfit', sans-serif;
-        }
-
-        .currency {
-            font-size: 16px;
-            color: var(--text-sub);
-            font-weight: 500;
-        }
-
-        /* Inputs */
-        .action-row {
-            display: flex;
-            gap: 8px;
-            margin-top: 16px;
-            border-top: 1px solid var(--bg);
-            padding-top: 16px;
-        }
-
-        .amount-input {
-            flex: 1;
-            padding: 12px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 16px;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        .amount-input:focus {
-            border-color: var(--primary);
-        }
-
-        .btn {
-            padding: 0 20px;
-            border-radius: 8px;
-            border: none;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            transition: transform 0.1s;
-        }
-
-        .btn:active {
-            transform: scale(0.95);
-        }
-
-        .btn-add {
-            background: var(--primary);
-            color: white;
-        }
-
-        .btn-sub {
-            background: #FEE2E2;
-            color: var(--danger);
-        }
-
-        .btn-outline {
-            border: 1px solid var(--border);
-            background: white;
-            color: var(--text-main);
-        }
-
-        /* Floating Add Button */
-        .fab {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            width: 60px;
-            height: 60px;
-            background: var(--text-main);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            cursor: pointer;
-            z-index: 90;
-            transition: transform 0.2s;
-        }
-
-        .fab:hover {
-            transform: rotate(90deg);
-        }
-
-        /* Modal */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.6);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 200;
-            backdrop-filter: blur(4px);
-        }
-
-        .modal {
-            background: white;
-            padding: 24px;
-            border-radius: 20px;
-            width: 90%;
-            max-width: 400px;
-            max-height: 90vh;
-            overflow-y: auto;
-            position: relative;
-        }
-
-        .modal h2 {
-            margin-bottom: 20px;
-            font-size: 20px;
-            color: var(--text-main);
-        }
-
-        .preset-category {
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--text-sub);
-            margin: 12px 0 8px;
-            padding-left: 4px;
-        }
-
-        .preset-group {
-            display: grid;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        .preset-btn {
-            background: white;
-            border: 1px solid var(--border);
-            padding: 12px;
-            border-radius: 12px;
-            text-align: left;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .preset-btn:hover {
-            border-color: var(--primary);
-            background: #FEF2F2;
-        }
-
-        .preset-icon {
-            width: 32px;
-            height: 32px;
-            background: #F3F4F6;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-main);
-        }
-
-        .preset-info h4 {
-            font-size: 14px;
-            margin-bottom: 2px;
-        }
-
-        .preset-info p {
-            font-size: 12px;
-            color: var(--text-sub);
-        }
-
-        .divider {
-            text-align: center;
-            margin: 16px 0;
-            font-size: 12px;
-            color: var(--text-sub);
-            position: relative;
-        }
-
-        .divider::before,
-        .divider::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            width: 40%;
-            height: 1px;
-            background: var(--border);
-        }
-
-        .divider::before {
-            left: 0;
-        }
-
-        .divider::after {
-            right: 0;
-        }
-
-        .form-label {
-            display: block;
-            font-size: 14px;
-            color: var(--text-sub);
-            margin-bottom: 6px;
-            margin-top: 12px;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            font-size: 16px;
-        }
-
-        textarea.form-input {
-            font-family: monospace;
-            font-size: 12px;
-            min-height: 100px;
-            resize: vertical;
-        }
-
-        .modal-actions {
-            display: flex;
-            gap: 12px;
-            margin-top: 24px;
-        }
-
-        .btn-full {
-            flex: 1;
-            padding: 14px;
-            border-radius: 12px;
-            font-size: 16px;
-        }
-
-        .btn-cancel {
-            background: #F3F4F6;
-            color: var(--text-main);
-        }
-
-        /* AI Chat Styles */
-        .ai-chat-container {
-            min-height: 200px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .ai-message {
-            padding: 12px;
-            border-radius: 12px;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        .ai-message.user {
-            background: #F3F4F6;
-            align-self: flex-end;
-            border-bottom-right-radius: 2px;
-            max-width: 85%;
-        }
-
-        .ai-message.bot {
-            background: var(--ai-bg);
-            color: #4C1D95;
-            align-self: flex-start;
-            border-bottom-left-radius: 2px;
-            max-width: 95%;
-            border: 1px solid #E9D5FF;
-        }
-
-        .loading-dots {
-            display: inline-block;
-        }
-
-        .loading-dots:after {
-            content: '.';
-            animation: dots 1.5s steps(5, end) infinite;
-        }
-
-        @keyframes dots {
-
-            0%,
-            20% {
-                content: '.';
-            }
-
-            40% {
-                content: '..';
-            }
-
-            60% {
-                content: '...';
-            }
-
-            80%,
-            100% {
-                content: '';
-            }
-        }
-
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--text-sub);
-        }
-
-        .empty-state i {
-            font-size: 48px;
-            margin-bottom: 16px;
-            color: #D1D5DB;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>CardWay | 我的卡包設定</title>
+  <!-- 引入 LIFF SDK -->
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <!-- 引入 Google Fonts -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Outfit:wght@400;600&display=swap"
+    rel="stylesheet">
+  <!-- 引入 FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      /* LINE 風格配色 & 明亮主題 */
+      --primary: #06C755;
+      --primary-dark: #05a546;
+      --bg: #F5F6F8;
+      /* 淺灰背景 */
+      --surface: #FFFFFF;
+      --text-main: #111827;
+      --text-sub: #6B7280;
+      --border: #E5E7EB;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Outfit', 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+    }
+
+    /* Layout */
+    .app-container {
+      min-height: 100vh;
+      padding: 20px;
+      padding-bottom: 100px;
+      max-width: 500px;
+      /* 手機版型優化 */
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Modern Card Style (White Cards) */
+    .ui-card {
+      background: var(--surface);
+      border-radius: 20px;
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .ui-card:active {
+      transform: scale(0.995);
+    }
+
+    /* Views Transition */
+    .view {
+      display: none;
+      opacity: 0;
+      transition: opacity 0.3s ease-out;
+    }
+
+    .view.active {
+      display: block;
+      opacity: 1;
+      animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Typography */
+    h1 {
+      font-size: 26px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--text-main);
+      letter-spacing: -0.5px;
+    }
+
+    p.subtitle {
+      color: var(--text-sub);
+      font-size: 14px;
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+
+    /* Home Stats - Modern Grid */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-item {
+      background: #F9FAFB;
+      padding: 20px 16px;
+      border-radius: 16px;
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+
+    .stat-val {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .stat-lbl {
+      font-size: 13px;
+      color: var(--text-sub);
+      margin-top: 4px;
+      font-weight: 500;
+    }
+
+    /* Visual Credit Card Style */
+    .visual-card {
+      background: linear-gradient(135deg, #475569 0%, #1e293b 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 16px;
+      margin-bottom: 12px;
+      position: relative;
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+    }
+
+    /* Dynamic gradients for cards */
+    .visual-card[data-bank="013 國泰世華"] {
+      background: linear-gradient(135deg, #01a33d 0%, #008530 100%);
+    }
+
+    .visual-card[data-bank="822 中國信託"] {
+      background: linear-gradient(135deg, #009E96 0%, #006862 100%);
+    }
+
+    .visual-card[data-bank="812 台新銀行"] {
+      background: linear-gradient(135deg, #E60012 0%, #99000c 100%);
+    }
+
+    .visual-card[data-bank="012 台北富邦"] {
+      background: linear-gradient(135deg, #0076CE 0%, #004b85 100%);
+    }
+
+    .visual-card[data-bank="808 玉山銀行"] {
+      background: linear-gradient(135deg, #00A650 0%, #007036 100%);
+    }
+
+    .vc-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 25px;
+    }
+
+    .vc-chip {
+      width: 36px;
+      height: 24px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      position: relative;
+    }
+
+    .vc-chip::after {
+      content: '';
+      position: absolute;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      width: 100%;
+      height: 50%;
+      top: 25%;
+      border-left: 0;
+      border-right: 0;
+    }
+
+    .vc-name {
+      font-size: 18px;
+      font-weight: 600;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .vc-bank {
+      font-size: 12px;
+      opacity: 0.8;
+      letter-spacing: 1px;
+    }
+
+    /* Search Bar */
+    .search-container {
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .search-input {
+      width: 100%;
+      background: var(--surface);
+      border: 2px solid transparent;
+      box-shadow: var(--shadow-sm);
+      border-radius: 14px;
+      padding: 16px 16px 16px 48px;
+      color: var(--text-main);
+      font-size: 15px;
+      outline: none;
+      transition: 0.3s;
+    }
+
+    .search-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(6, 199, 85, 0.15);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #9CA3AF;
+      font-size: 16px;
+    }
+
+    /* Bank Pills */
+    .bank-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 24px;
+      max-height: 200px;
+      overflow-y: auto;
+      padding: 4px;
+    }
+
+    .bank-pill {
+      padding: 8px 16px;
+      border-radius: 50px;
+      background: #F3F4F6;
+      color: var(--text-sub);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.2s;
+      border: 1px solid transparent;
+    }
+
+    .bank-pill:hover {
+      background: #E5E7EB;
+    }
+
+    .bank-pill.active {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 4px 10px rgba(6, 199, 85, 0.3);
+    }
+
+    /* Selection List */
+    .selection-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .selection-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-radius: 16px;
+      background: var(--surface);
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border);
+    }
+
+    .action-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .add-icon {
+      background: #F3F4F6;
+      color: var(--primary);
+    }
+
+    .add-icon:hover {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .remove-icon {
+      background: #FEE2E2;
+      color: #EF4444;
+    }
+
+    /* Payment Mapping */
+    .pay-section {
+      background: var(--surface);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .pay-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .pay-icon {
+      width: 36px;
+      height: 36px;
+      background: #F3F4F6;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-sub);
+      font-size: 16px;
+    }
+
+    .chip-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .mini-chip {
+      padding: 6px 14px;
+      background: #F9FAFB;
+      border: 1px solid #E5E7EB;
+      border-radius: 50px;
+      font-size: 12px;
+      color: var(--text-sub);
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .mini-chip.selected {
+      background: #DCFCE7;
+      /* Light Green */
+      border-color: var(--primary);
+      color: #166534;
+      /* Dark Green Text */
+      font-weight: 600;
+    }
+
+    /* Navigation Bar (Floating) */
+    .nav-bar {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 48px);
+      max-width: 450px;
+      height: 70px;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-radius: 24px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 100;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #9CA3AF;
+      transition: 0.3s;
+      cursor: pointer;
+      padding: 8px 16px;
+    }
+
+    .nav-item.active {
+      color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    .nav-item.active i {
+      filter: drop-shadow(0 4px 6px rgba(6, 199, 85, 0.4));
+    }
+
+    .nav-item i {
+      font-size: 22px;
+      margin-bottom: 4px;
+    }
+
+    .nav-item span {
+      font-size: 10px;
+      font-weight: 600;
+    }
+
+    /* Buttons */
+    .primary-btn {
+      width: 100%;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 18px;
+      border-radius: 18px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(6, 199, 85, 0.3);
+      transition: 0.2s;
+    }
+
+    .primary-btn:active {
+      transform: scale(0.98);
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      background: #111827;
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 50px;
+      font-size: 14px;
+      font-weight: 500;
+      z-index: 200;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Modal */
+    #custom-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(4px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .modal-content {
+      background: #fff;
+      padding: 32px 24px;
+      border-radius: 24px;
+      width: 85%;
+      max-width: 320px;
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+    }
+
+    /* Form Elements for Settings */
+    .form-select {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 14px;
+      background: #fff;
+      color: var(--text-main);
+      cursor: pointer;
+    }
+
+    .form-input,
+    .form-textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 14px;
+      background: #fff;
+      color: var(--text-main);
+      box-sizing: border-box;
+    }
+
+    .form-textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    .habit-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .habit-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      background: #F9FAFB;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .habit-item:hover {
+      background: #F3F4F6;
+    }
+
+    .habit-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary);
+    }
+
+    .habit-item span {
+      font-size: 14px;
+      color: var(--text-main);
+    }
+
+    /* Two-column wallet grid */
+    .wallet-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .wallet-grid .visual-card {
+      margin-bottom: 0;
+    }
+
+    /* Card organization selector */
+    .card-org-selector {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .org-btn {
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: #fff;
+      font-size: 11px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .org-btn.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+  </style>
 </head>
 
 <body>
 
-    <div class="header">
-        <div class="brand">
-            <i class="fas fa-plane-departure"></i>
-            <div>
-                日旅神卡攻略
-            </div>
+  <div id="toast" class="toast"><i class="fas fa-check-circle" style="color: #4ade80;"></i> <span
+      id="toast-msg">設定已儲存</span></div>
+
+  <div class="app-container">
+
+    <!-- View 1: Home -->
+    <div id="view-home" class="view active">
+      <div class="ui-card" style="border:none; box-shadow:none; background:transparent; padding: 10px 0;">
+        <h1 id="user-name">載入中...</h1>
+        <p class="subtitle">歡迎回來！管理您的智慧錢包</p>
+
+        <div class="stat-grid">
+          <div class="stat-item">
+            <div class="stat-val" id="count-cards">0</div>
+            <div class="stat-lbl">持有卡片</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-val" id="count-pay">0</div>
+            <div class="stat-lbl">支付綁定</div>
+          </div>
         </div>
-        <div class="header-actions">
-            <button class="ai-header-btn" onclick="openAIModal()">
-                <i class="fas fa-sparkles"></i> AI
-            </button>
-            <button class="settings-btn" onclick="openSettingsModal()">
-                <i class="fas fa-cog"></i>
-            </button>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <h3 style="font-size:16px;">我的卡片</h3>
+          <span style="font-size:12px; color:var(--primary); cursor:pointer;"
+            onclick="switchView('view-cards')">編輯</span>
         </div>
-    </div>
 
-    <div class="container" id="cards-container">
-        <!-- Cards will be injected here -->
-    </div>
-
-    <!-- FAB -->
-    <div class="fab" onclick="openAddModal()">
-        <i class="fas fa-plus"></i>
-    </div>
-
-    <!-- Add Card Modal -->
-    <div class="modal-overlay" id="add-modal">
-        <div class="modal">
-            <h2>新增攻略項目</h2>
-
-            <div class="form-label">快速選擇 (顧問精選)</div>
-            <div id="preset-list">
-                <!-- Presets injected via JS -->
-            </div>
-
-            <div class="divider">或自訂項目</div>
-
-            <label class="form-label">卡片歸屬</label>
-            <select id="input-category" class="form-input">
-                <option value="熊本熊">🐻 熊本熊卡</option>
-                <option value="吉鶴卡">🪿 吉鶴卡</option>
-                <option value="星展 eco 卡">🌱 星展 eco 卡</option>
-                <option value="其他">其他</option>
-            </select>
-
-            <label class="form-label">項目名稱</label>
-            <input type="text" id="input-name" class="form-input" placeholder="例如：自訂活動">
-
-            <label class="form-label">上限金額 (NT$)</label>
-            <input type="number" id="input-limit" class="form-input" placeholder="0" inputmode="numeric">
-
-            <label class="form-label">週期標籤</label>
-            <select id="input-period" class="form-input">
-                <option value="每月">每月重置</option>
-                <option value="每季">每季重置</option>
-                <option value="活動期間">活動期間 (一次性)</option>
-            </select>
-
-            <label class="form-label">顧問點評/備註</label>
-            <input type="text" id="input-note" class="form-input" placeholder="簡短備註 (選填)">
-
-            <div class="modal-actions">
-                <button class="btn btn-full btn-cancel" onclick="closeAddModal()">取消</button>
-                <button class="btn btn-full btn-add" onclick="addCustomCard()">新增自訂</button>
-            </div>
+        <div id="wallet-preview">
+          <!-- Dynamic Cards Here -->
+          <div style="text-align:center; padding:30px; border:2px dashed #E5E7EB; border-radius:16px; color:#9CA3AF;">
+            <i class="fas fa-wallet" style="font-size:24px; margin-bottom:8px;"></i>
+            <p style="font-size:13px;">錢包是空的</p>
+          </div>
         </div>
+      </div>
+      <div class="header">
+        <div class="h-left">
+          <i class="fas fa-wallet" style="color:var(--primary); font-size:20px;"></i>
+          <span style="font-weight:700; font-size:18px;">CardWay <span
+              style="font-size:10px; color:#999; font-weight:400;" id="app-ver"></span></span>
+        </div>
+        <div class="h-right">
+          <i class="fas fa-bell header-icon"></i>
+        </div>
+      </div>
+      <button class="primary-btn" onclick="switchView('view-cards')">
+        <i class="fas fa-plus" style="margin-right:8px;"></i>新增卡片
+      </button>
     </div>
 
-    <!-- Settings/Backup Modal -->
-    <div class="modal-overlay" id="settings-modal">
-        <div class="modal">
-            <h2><i class="fas fa-save"></i> 資料管理</h2>
-            <p style="font-size:13px; color:var(--text-sub); margin-bottom:16px;">
-                資料目前自動儲存於此瀏覽器。
-            </p>
+    <!-- View 2: Add Cards -->
+    <div id="view-cards" class="view">
+      <div class="ui-card">
+        <h1>選擇卡片</h1>
+        <p class="subtitle">搜尋銀行並加入您的卡片</p>
 
-            <!-- API Key Section for Zeabur/Static/Local -->
-            <div id="apikey-section" style="margin-bottom:20px; padding-bottom:16px; border-bottom:1px solid #E5E7EB;">
-                <label class="form-label" style="color:var(--primary); font-weight:700;">🔑 Gemini API Key 設定</label>
-                <div style="font-size:12px; color:var(--text-sub); margin-bottom:8px;">
-                    若非使用 GAS 部署 (如 Zeabur)，請在此填入 Key。
+        <div class="search-container">
+          <i class="fas fa-search search-icon"></i>
+          <input type="text" id="bank-search" class="search-input" placeholder="搜尋銀行（例如：國泰、中信）..."
+            oninput="filterBanks()">
+        </div>
+
+        <div class="bank-grid" id="bank-list">
+          <!-- Bank Pills -->
+        </div>
+
+        <h3 style="font-size:15px; margin-bottom:12px; color:var(--text-main);">卡片列表</h3>
+        <div class="selection-list" id="card-list">
+          <!-- Cards -->
+        </div>
+      </div>
+
+      <!-- Bottom Summary Bar -->
+      <div style="position:fixed; bottom:100px; left:20px; right:20px; max-width:460px; margin:0 auto;">
+        <button class="primary-btn" onclick="switchView('view-payments')"
+          style="display:flex; justify-content:space-between; padding: 16px 24px;">
+          <span>已選擇 <span id="cart-count">0</span> 張</span>
+          <span>下一步 <i class="fas fa-arrow-right"></i></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- View 3: Payments -->
+    <div id="view-payments" class="view">
+      <div style="padding: 10px 0;">
+        <h1>支付綁定</h1>
+        <p class="subtitle">設定各個支付工具對應的卡片</p>
+
+        <div id="payment-mapping-list">
+          <!-- Payment logic -->
+        </div>
+      </div>
+
+      <div style="height: 100px;"></div> <!-- Spacer -->
+
+      <div style="position:fixed; bottom:100px; left:20px; right:20px; max-width:460px; margin:0 auto;">
+        <button class="primary-btn" id="save-btn" onclick="saveAll()">
+          <i class="fas fa-check" style="margin-right: 8px;"></i>儲存設定
+        </button>
+      </div>
+    </div>
+
+    <!-- View 4: Settings -->
+    <div id="view-settings" class="view">
+      <div style="padding: 10px 0;">
+        <h1>進階設定</h1>
+        <p class="subtitle">讓卡衛更了解你</p>
+
+        <!-- 性別 -->
+        <div class="ui-card">
+          <h3 style="font-size:15px; margin-bottom:12px;">您的性別</h3>
+          <div class="chip-container">
+            <div class="mini-chip" data-gender="male" onclick="selectGender(this)">男</div>
+            <div class="mini-chip" data-gender="female" onclick="selectGender(this)">女</div>
+            <div class="mini-chip" data-gender="neutral" onclick="selectGender(this)">中性</div>
+            <div class="mini-chip" data-gender="undisclosed" onclick="selectGender(this)">不透露</div>
+          </div>
+        </div>
+
+        <!-- 生日月份 -->
+        <div class="ui-card">
+          <h3 style="font-size:15px; margin-bottom:12px;">生日月份</h3>
+          <select id="birth-month" class="form-select" onchange="updateProfile()">
+            <option value="">請選擇</option>
+            <option value="1">1 月</option>
+            <option value="2">2 月</option>
+            <option value="3">3 月</option>
+            <option value="4">4 月</option>
+            <option value="5">5 月</option>
+            <option value="6">6 月</option>
+            <option value="7">7 月</option>
+            <option value="8">8 月</option>
+            <option value="9">9 月</option>
+            <option value="10">10 月</option>
+            <option value="11">11 月</option>
+            <option value="12">12 月</option>
+          </select>
+        </div>
+
+        <!-- 用卡習慣 -->
+        <div class="ui-card">
+          <h3 style="font-size:15px; margin-bottom:12px;">用卡習慣（可多選）</h3>
+          <div class="habit-list">
+            <label class="habit-item">
+              <input type="checkbox" name="habit" value="搶優惠" onchange="updateProfile()">
+              <span>習慣去搶登錄限量限時信用卡優惠</span>
+            </label>
+            <label class="habit-item">
+              <input type="checkbox" name="habit" value="配合銀行" onchange="updateProfile()">
+              <span>為了更高回饋配合銀行要求</span>
+            </label>
+            <label class="habit-item">
+              <input type="checkbox" name="habit" value="無腦刷" onchange="updateProfile()">
+              <span>一卡到底無腦刷</span>
+            </label>
+            <label class="habit-item">
+              <input type="checkbox" name="habit" value="其他" onchange="toggleOtherHabit(this)">
+              <span>其他</span>
+            </label>
+            <input type="text" id="other-habit-text" class="form-input" placeholder="請說明您的用卡習慣..."
+              style="display:none; margin-top:8px;" onchange="updateProfile()">
+          </div>
+        </div>
+
+        <!-- 主力卡片 -->
+        <div class="ui-card">
+          <h3 style="font-size:15px; margin-bottom:12px;">主力卡片（選 1~3 張）</h3>
+          <div class="chip-container" id="main-card-list">
+            <!-- 動態渲染 -->
+          </div>
+        </div>
+
+        <!-- 卡衛小問券 -->
+        <div class="ui-card">
+          <h3 style="font-size:15px; margin-bottom:12px;">🎯 卡衛小問券</h3>
+
+          <label
+            style="font-size:13px; color:var(--text-sub); display:block; margin-bottom:8px;">除了免費查詢模式，還希望增加什麼功能？</label>
+          <textarea id="wanted-features" class="form-textarea" placeholder="例如：自動推播優惠、消費分析..."
+            onchange="updateProfile()"></textarea>
+
+          <label
+            style="font-size:13px; color:var(--text-sub); display:block; margin:16px 0 8px;">每月願意小額支持新增功能的價格？</label>
+          <div class="chip-container">
+            <div class="mini-chip" data-price="10" onclick="selectPrice(this)">$10</div>
+            <div class="mini-chip" data-price="30" onclick="selectPrice(this)">$30</div>
+            <div class="mini-chip" data-price="60" onclick="selectPrice(this)">$60</div>
+            <div class="mini-chip" data-price="100" onclick="selectPrice(this)">$100</div>
+            <div class="mini-chip" data-price="150" onclick="selectPrice(this)">$150</div>
+            <div class="mini-chip" data-price="300" onclick="selectPrice(this)">$300</div>
+          </div>
+
+          <label style="font-size:13px; color:var(--text-sub); display:block; margin:16px 0 8px;">告訴卡衛你信用卡方面的小痛點</label>
+          <textarea id="pain-points" class="form-textarea" placeholder="例如：回饋計算太複雜、優惠太多記不住..."
+            onchange="updateProfile()"></textarea>
+        </div>
+
+      </div>
+
+      <div style="height: 100px;"></div> <!-- Spacer -->
+
+      <div style="position:fixed; bottom:100px; left:20px; right:20px; max-width:460px; margin:0 auto;">
+        <button class="primary-btn" onclick="saveAll()">
+          <i class="fas fa-check" style="margin-right: 8px;"></i>儲存設定
+        </button>
+      </div>
+    </div>
+
+  </div> <!-- /app-container -->
+
+  <!-- Modal -->
+  <div id="custom-modal">
+    <div class="modal-content">
+      <div style="font-size: 40px; margin-bottom: 16px;" id="modal-icon">👋</div>
+      <h3 style="font-size:18px; margin-bottom:8px;">提示</h3>
+      <div id="modal-msg" class="modal-msg" style="color:#6B7280; font-size:14px; margin-bottom:24px;"></div>
+      <button class="primary-btn" onclick="closeModal()" style="padding:12px; font-size:14px;">我知道了</button>
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <div class="nav-bar">
+    <div class="nav-item active" onclick="switchView('view-home')" id="nav-home">
+      <i class="fas fa-wallet"></i>
+      <span>錢包</span>
+    </div>
+    <div class="nav-item" onclick="switchView('view-cards')" id="nav-cards">
+      <i class="fas fa-search-plus"></i>
+      <span>找卡</span>
+    </div>
+    <div class="nav-item" onclick="switchView('view-payments')" id="nav-payments">
+      <i class="fas fa-mobile-alt"></i>
+      <span>支付</span>
+    </div>
+    <div class="nav-item" onclick="switchView('view-settings')" id="nav-settings">
+      <i class="fas fa-sliders-h"></i>
+      <span>進階</span>
+    </div>
+  </div>
+
+  <script>
+    // Config
+    const LIFF_ID = "2008834693-FtenJAlU";
+    const VERSION = "v1.4 (Auth Debug)";
+
+    // 自動帶入 GAS URL (正式環境)，若是在本地開發則保留變數以免錯誤
+    // 注意：本地開發時 <?= gasUrl ?> 不會被替換，因此需要判斷
+    let GAS_URL = "<?= gasUrl ?>";
+    if (GAS_URL.includes("gasUrl")) {
+      // 本地開發或 GitHub Pages (未透過 GAS 渲染) 時的 Fallback
+      GAS_URL = "https://script.google.com/macros/s/AKfycbzbdllVZFKTHvFm8vlsrfYzHf0BtQjChEoHvVppm8x9T9ayJD0ndfZbFWaaqpMJ4OXp/exec";
+    }
+
+    // Auto-detect Mock Mode only for localhost or debugging
+    const IS_MOCK = location.hostname === "localhost" || location.hostname.includes("127.0.0.1");
+
+    // Data (Same DB)
+    const CARD_DB = {
+      "004 臺灣銀行": [
+        "導盲犬認同卡",
+        "祝福認同卡",
+        "一卡通鈦金商旅卡",
+        "金采卡",
+        "鈦金商旅卡"
+      ],
+      "005 土地銀行": [
+        "icash2.0聯名鈦金卡",
+        "麟洋羽球認同卡",
+        "JCB極緻卡",
+        "白金商務卡"
+      ],
+      "006 合作金庫": [
+        "卡納赫拉的小動物悠遊聯名卡",
+        "i運動卡",
+        "樂活卡",
+        "世界卡",
+        "活力御璽卡",
+        "漢來美食聯名卡"
+      ],
+      "007 第一銀行": [
+        "iLEO信用卡",
+        "義享天地聯名卡",
+        "Living Green綠活卡",
+        "鈦金商旅卡",
+        "御璽商旅卡",
+        "桃園市市民卡聯名卡",
+        "宜蘭認同卡"
+      ],
+      "008 華南銀行": [
+        "超鑽現金回饋卡",
+        "SnY信用卡",
+        "Rich+富家卡",
+        "i網購生活卡",
+        "嘟嘟房聯名卡",
+        "美饌遨遊世界卡",
+        "大甲媽祖認同卡"
+      ],
+      "009 彰化銀行": [
+        "My樂現金回饋卡",
+        "My購卡",
+        "My拜卡",
+        "馬偕認同卡"
+      ],
+      "011 上海商銀": [
+        "Teresa Card",
+        "小小兵信用卡",
+        "簡單卡",
+        "牙醫師認同卡"
+      ],
+      "012 台北富邦": [
+        "富邦Costco聯名卡",
+        "富邦J卡",
+        "momo卡",
+        "Open Possible聯名卡",
+        "數位生活卡",
+        "尊御世界卡",
+        "廣三SOGO聯名卡",
+        "台茂聯名卡"
+      ],
+      "013 國泰世華": [
+        "CUBE卡",
+        "亞洲萬里通聯名卡",
+        "長榮航空聯名卡",
+        "世界卡",
+        "蝦皮購物聯名卡",
+        "台塑聯名卡"
+      ],
+      "017 兆豐銀行": [
+        "利多御璽卡",
+        "e秒刷鈦金卡",
+        "Gogoro聯名卡",
+        "宇宙明星BT21信用卡",
+        "Mega One一卡通聯名卡",
+        "海悅國際聯名卡",
+        "將來銀行聯名卡"
+      ],
+      "052 渣打銀行": [
+        "LINE Bank聯名卡",
+        "渣打現金回饋御璽卡",
+        "優先理財無限卡"
+      ],
+      "081 滙豐銀行": [
+        "旅人無限卡",
+        "旅人御璽卡",
+        "旅人輕旅卡",
+        "Live+現金回饋卡",
+        "匯鑽卡",
+        "現金回饋御璽卡"
+      ],
+      "103 新光銀行": [
+        "寰宇現金回饋卡",
+        "新光三越聯名卡",
+        "OU點點卡",
+        "日本航空聯名卡",
+        "悠遊聯名卡",
+        "ESG銀行卡"
+      ],
+      "803 聯邦銀行": [
+        "吉鶴卡",
+        "LINE Bank聯名卡",
+        "賴點卡",
+        "幸福M卡",
+        "綠卡",
+        "微風聯名卡",
+        "理財型無限卡"
+      ],
+      "805 遠東商銀": [
+        "樂家+卡",
+        "快樂信用卡",
+        "C'est Moi我的卡",
+        "銀行卡"
+      ],
+      "806 元大銀行": [
+        "鑽金智富卡",
+        "元大鑽金卡",
+        "Hello Kitty聯名卡",
+        "分享黑啤卡",
+        "iCash聯名卡"
+      ],
+      "807 永豐銀行": [
+        "DAWAY卡",
+        "SPORT卡",
+        "幣倍卡",
+        "大戶DAWHO信用卡",
+        "現金回饋JCB卡",
+        "保倍卡",
+        "MITSUI OUTLET PARK聯名卡"
+      ],
+      "808 玉山銀行": [
+        "Unicard",
+        "U Bear信用卡",
+        "Pi拍錢包信用卡",
+        "熊本熊卡",
+        "星宇航空聯名卡",
+        "無限卡",
+        "家樂福聯名卡",
+        "漢神巨蛋聯名卡",
+        "寶雅聯名卡",
+        "公務人員國民旅遊卡"
+      ],
+      "809 凱基銀行": [
+        "魔BUY卡",
+        "魔FUN卡",
+        "現金回饋卡"
+      ],
+      "810 星展銀行": [
+        "eco永續卡",
+        "飛行世界之極卡",
+        "飛行世界商務卡",
+        "饗樂生活卡",
+        "PChome Prime聯名卡",
+        "炫晶御璽卡",
+        "everyday鈦金卡"
+      ],
+      "812 台新銀行": [
+        "太陽卡",
+        "玫瑰卡",
+        "玫瑰Giving卡",
+        "@GoGo卡",
+        "FlyGo卡",
+        "街口聯名卡",
+        "Gogoro Rewards聯名卡",
+        "新光三越聯名卡",
+        "遠傳friDay聯名卡",
+        "大潤發聯名卡"
+      ],
+      "822 中國信託": [
+        "LINE Pay信用卡",
+        "中華航空聯名卡",
+        "Agoda聯名卡",
+        "中油聯名卡",
+        "ALL ME卡",
+        "Foodpanda聯名卡",
+        "英雄聯盟信用卡",
+        "商旅鈦金卡",
+        "Global Mall聯名卡",
+        "秀泰聯名卡",
+        "南紡購物中心聯名卡",
+        "LaLaport聯名卡",
+        "101聯名卡"
+      ],
+      "[無] 美國運通": [
+        "簽帳白金卡 (大白)",
+        "信用白金卡 (小白)",
+        "長榮航空簽帳白金卡",
+        "晶華珍饌信用白金卡"
+      ],
+      "[無] 樂天信用卡": [
+        "樂天信用卡",
+        "樂虎卡",
+        "樂天Rocky卡"
+      ]
+    };
+
+    const PAY_METHODS = [
+      { name: "LINE Pay", icon: "fab fa-line" },
+      { name: "街口支付", icon: "fas fa-store" },
+      { name: "全支付", icon: "fas fa-coins" },
+      { name: "悠遊付", icon: "fas fa-ticket-alt" },
+      { name: "台灣 Pay", icon: "fas fa-qrcode" },
+      { name: "icash Pay", icon: "fas fa-wallet" },
+      { name: "Pi 拍錢包", icon: "fas fa-shopping-bag" }
+    ];
+
+    let selectedBank = "013 國泰世華";
+    let myWallet = [];
+    let payMap = {};
+
+    // Init
+    window.onload = async () => {
+      try {
+        await initApp();
+      } catch (e) {
+        console.error(e);
+        showModal("應用程式載入異常: " + e.message, "⚠️");
+      }
+    };
+
+    async function initApp() {
+      let displayName = "訪客";
+
+      if (IS_MOCK) {
+        displayName = "模擬用戶";
+        // Mock profile name
+        userProfile.displayName = displayName;
+        showToast("🔧 預覽模式：使用本地模擬數據");
+      } else {
+        try {
+          await liff.init({ liffId: LIFF_ID });
+          if (!liff.isLoggedIn()) {
+            liff.login();
+            return;
+          }
+          const profile = await liff.getProfile();
+          displayName = profile.displayName;
+          userProfile.displayName = displayName;
+          // showToast(`登入成功: ${displayName}`); 
+        } catch (err) {
+          console.warn("LIFF Init Failed", err);
+          showModal("LIFF 初始化失敗: " + err.message, "⚠️");
+          displayName = "模擬用戶";
+        }
+      }
+
+      document.getElementById('user-name').innerText = `Hi, ${displayName}`;
+      document.getElementById('app-ver').innerText = VERSION;
+      await loadSettings();
+
+      renderBanks();
+      renderCards(selectedBank);
+      renderPaymentSetup();
+      updateHomeStats();
+    }
+
+    // Logic
+    async function loadSettings() {
+      if (IS_MOCK) {
+        // 本地預覽模式：從 localStorage 讀取
+        const saved = localStorage.getItem('cardway_data_v2');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          myWallet = Array.isArray(parsed.myWallet) ? parsed.myWallet : [];
+          payMap = (typeof parsed.payMap === 'object') ? parsed.payMap : {};
+        }
+        updateCartCount();
+        return;
+      }
+
+      try {
+        const idToken = liff.getIDToken();
+        const decoded = liff.getDecodedIDToken();
+        const userId = decoded ? decoded.sub : null; // 直接取得 User ID
+
+        // Fallback for Mock
+        if (!userId && !IS_MOCK) throw new Error("無 User ID");
+
+        const res = await fetch(GAS_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: "get_settings",
+            idToken: idToken,
+            userId: userId // 傳送 User ID
+          })
+        });
+        const data = await res.json();
+
+        if (data.success === false) {
+          console.error("Server API Error", data.msg);
+          // Optional: showModal("同步失敗: " + data.msg);
+        } else if (data.settings) {
+          myWallet = Array.isArray(data.settings.myWallet) ? data.settings.myWallet : [];
+          payMap = (typeof data.settings.payMap === 'object') ? data.settings.payMap : {};
+          myWallet = myWallet.filter(c => c && c.name);
+          // 載入 profile
+          if (data.settings.profile) {
+            Object.assign(userProfile, data.settings.profile);
+          }
+        }
+      } catch (e) {
+        console.error("Sync Error", e);
+        // showModal("讀取設定失敗: " + e.message, "⚠️");
+      }
+      updateCartCount();
+    }
+
+    // ... (skipped standard functions)
+
+    async function saveAll() {
+      const btn = document.getElementById('save-btn');
+      const oldText = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 同步中...';
+      btn.disabled = true;
+
+      if (IS_MOCK) {
+        // 本地預覽模式：儲存到 localStorage
+        localStorage.setItem('cardway_data_v2', JSON.stringify({ myWallet, payMap, profile: userProfile }));
+        setTimeout(() => {
+          finishSave(btn, oldText);
+        }, 500);
+        return;
+      }
+
+      // Real Cloud Save
+      try {
+        const idToken = liff.getIDToken();
+        const decoded = liff.getDecodedIDToken();
+        const userId = decoded ? decoded.sub : null;
+
+        if (!userId) throw new Error("無法取得 User ID (Save)");
+
+        console.log("Saving to:", GAS_URL); // Debug URL
+
+        const res = await fetch(GAS_URL, {
+          method: 'POST',
+          // Google Apps Script 有時對 CORS 很嚴格，用 text/plain 通常最穩
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: "save_settings",
+            idToken,
+            userId,
+            myWallet,
+            payMap,
+            profile: userProfile
+          })
+        });
+
+        const text = await res.text();
+        console.log("Server Response Raw:", text); // Debug Raw Response
+
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          // 如果回傳的是 HTML (通常是 404 或 Google 錯誤頁面)，這裡會報錯
+          throw new Error(`伺服器回應非 JSON (可能網址錯了或權限不足): ${text.substring(0, 100)}...`);
+        }
+
+        if (data.success || data.status === 'success') {
+          finishSave(btn, oldText);
+        } else {
+          throw new Error(data.msg || "未知伺服器錯誤");
+        }
+      } catch (e) {
+        console.error("Save Failed:", e);
+        showModal(`儲存失敗！\n錯誤: ${e.message}\n(請截圖給工程師)`, "❌");
+        btn.innerHTML = oldText;
+        btn.disabled = false;
+      }
+    }
+
+    function switchView(viewId) {
+      window.scrollTo(0, 0);
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+
+      const target = document.getElementById(viewId);
+      target.classList.add('active');
+
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      const navId = 'nav-' + viewId.split('-')[1];
+      if (document.getElementById(navId)) document.getElementById(navId).classList.add('active');
+
+      // Re-render specifics
+      if (viewId === 'view-home') updateHomeStats();
+      if (viewId === 'view-payments') renderPaymentSetup();
+      if (viewId === 'view-settings') renderSettingsView();
+    }
+
+    // Render Banks as Pills
+    function renderBanks(filter = "") {
+      const container = document.getElementById('bank-list');
+      container.innerHTML = '';
+      const searchKey = filter.trim().toLowerCase();
+
+      const banks = Object.keys(CARD_DB).filter(b => b.toLowerCase().includes(searchKey));
+
+      if (banks.length === 0) {
+        container.innerHTML = `<div style="width:100%; text-align:center; color:#9CA3AF; padding:10px;">找不到銀行</div>`;
+        return;
+      }
+
+      banks.forEach(bank => {
+        const pill = document.createElement('div');
+        pill.className = `bank-pill ${bank === selectedBank ? 'active' : ''}`;
+        pill.innerText = bank.split(" ")[1] || bank;
+        pill.onclick = () => {
+          selectedBank = bank;
+          renderBanks(filter); // Re-render pills to update active state
+          renderCards(bank);
+        };
+        container.appendChild(pill);
+      });
+    }
+
+    function filterBanks() {
+      renderBanks(document.getElementById('bank-search').value);
+    }
+
+    // Render Cards List
+    function renderCards(bank) {
+      const container = document.getElementById('card-list');
+      container.innerHTML = '';
+
+      const cards = CARD_DB[bank] || [];
+      if (cards.length === 0) {
+        container.innerHTML = `<div style="text-align:center; color:#9CA3AF; padding:20px;">無卡片資料</div>`;
+        return;
+      }
+
+      // 判斷是否為特殊卡組織（不顯示選擇器）
+      const isSpecialOrg = bank.includes('美國運通') || bank.includes('樂天');
+
+      cards.forEach(cardName => {
+        const item = document.createElement('div');
+        item.className = 'selection-item';
+        item.style.flexDirection = 'column';
+        item.style.alignItems = 'stretch';
+
+        const existingCard = myWallet.find(c => c.name === cardName && c.bank === bank);
+        const isSelected = !!existingCard;
+        const currentOrg = existingCard?.org || 'visa';
+
+        // Card info row
+        const infoRow = document.createElement('div');
+        infoRow.style.cssText = 'display:flex; justify-content:space-between; align-items:center; width:100%;';
+        infoRow.innerHTML = `
+                <div>
+                    <div style="font-weight:600; font-size:15px; margin-bottom:2px;">${cardName}</div>
+                    <div style="font-size:12px; color:var(--text-sub);">${bank}</div>
                 </div>
-                <input type="password" id="input-apikey" class="form-input" placeholder="AIzaSy..."
-                    onchange="saveApiKey()">
-            </div>
+              `;
 
-            <label class="form-label">匯出備份 (複製此代碼保存)</label>
-            <textarea id="export-area" class="form-input" readonly onclick="this.select()"></textarea>
-            <div style="display:flex; gap:8px;">
-                <button class="btn btn-full btn-add" onclick="copyExportData()">
-                    <i class="fas fa-copy" style="margin-right:8px;"></i> 複製代碼
-                </button>
-            </div>
+        const btn = document.createElement('button');
+        btn.className = `action-btn ${isSelected ? 'remove-icon' : 'add-icon'}`;
+        btn.innerHTML = isSelected ? '<i class="fas fa-minus"></i>' : '<i class="fas fa-plus"></i>';
+        btn.onclick = () => toggleCard(bank, cardName, 'visa');
 
-            <div class="divider">還原資料</div>
+        infoRow.appendChild(btn);
+        item.appendChild(infoRow);
 
-            <label class="form-label">匯入備份 (貼上代碼)</label>
-            <input type="text" id="import-input" class="form-input" placeholder="在此貼上備份代碼...">
-            <button class="btn btn-full btn-outline" onclick="importData()">
-                <i class="fas fa-file-import" style="margin-right:8px;"></i> 載入備份
-            </button>
+        // Card organization selector (only for non-special cards)
+        if (isSelected && !isSpecialOrg) {
+          const orgSelector = document.createElement('div');
+          orgSelector.className = 'card-org-selector';
 
-            <div class="divider">危險區域</div>
-            <button class="btn btn-full btn-sub" onclick="clearAllData()">
-                <i class="fas fa-trash-alt" style="margin-right:8px;"></i> 清除所有資料
-            </button>
+          ['visa', 'mastercard', 'jcb'].forEach(org => {
+            const orgBtn = document.createElement('button');
+            orgBtn.className = `org-btn ${currentOrg === org ? 'active' : ''}`;
+            orgBtn.innerText = org.toUpperCase();
+            orgBtn.onclick = (e) => {
+              e.stopPropagation();
+              updateCardOrg(bank, cardName, org);
+            };
+            orgSelector.appendChild(orgBtn);
+          });
 
-            <div class="modal-actions">
-                <button class="btn btn-full btn-cancel" onclick="closeSettingsModal()">關閉</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- AI Modal -->
-    <div class="modal-overlay" id="ai-modal">
-        <div class="modal">
-            <h2 style="display:flex; align-items:center; gap:8px;">
-                <i class="fas fa-sparkles" style="color:#7C3AED;"></i>
-                AI 消費顧問
-            </h2>
-            <p style="font-size:13px; color:var(--text-sub); margin-bottom:16px;">
-                輸入你想買的東西與金額，AI 會比較「熊本熊、吉鶴、星展 eco」的優惠，並根據您目前的額度狀態提供建議。
-            </p>
-
-            <div class="ai-chat-container" id="ai-response-area">
-                <!-- Chat history -->
-            </div>
-
-            <div style="margin-top:16px; display:flex; gap:8px;">
-                <input type="text" id="ai-input" class="form-input" style="margin-bottom:0;"
-                    placeholder="例：在 UNIQLO 買衣服 3000 元">
-                <button class="btn btn-add" style="background:#7C3AED; padding:0 16px;" onclick="askGemini()">
-                    <i class="fas fa-paper-plane"></i>
-                </button>
-            </div>
-
-            <div class="modal-actions">
-                <button class="btn btn-full btn-cancel" onclick="closeAIModal()">關閉</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Global Error Handler for Mobile Debugging
-        window.onerror = function (msg, url, line, col, error) {
-            // alert("JS Error: " + msg + "\nLine: " + line); // Disable for production
-            return false;
-        };
-
-        // Gemini API Configuration
-        let apiKey = "<?!= apiKey ?>";
-
-        // 1. Try generic check for GAS tag
-        if (apiKey.indexOf("<" + "?") !== -1 || !apiKey) {
-            apiKey = "";
+          item.appendChild(orgSelector);
         }
 
-        // 2. Load from LocalStorage (Priority for Zeabur/Static)
-        const localKey = localStorage.getItem('gemini_api_key');
-        if (localKey) {
-            apiKey = localKey;
-        }
+        container.appendChild(item);
+      });
+    }
 
-        function saveApiKey() {
-            const val = document.getElementById('input-apikey').value.trim();
-            if (val) {
-                localStorage.setItem('gemini_api_key', val);
-                apiKey = val;
-                alert("API Key 已儲存！");
-            }
-        }
+    function updateCardOrg(bank, cardName, org) {
+      const card = myWallet.find(c => c.name === cardName && c.bank === bank);
+      if (card) {
+        card.org = org;
+        renderCards(bank);
+        showToast(`已設定為 ${org.toUpperCase()}`);
+      }
+    }
 
-        // On Open Settings, fill the input
-        function initSettingsUI() {
-            const stored = localStorage.getItem('gemini_api_key');
-            if (stored && document.getElementById('input-apikey')) {
-                document.getElementById('input-apikey').value = stored;
-            }
-        }
-
-        // 2026 權益預設資料 (熊本熊 + 吉鶴 + 星展eco)
-
-        // 2026 權益預設資料 (熊本熊 + 吉鶴 + 星展eco)
-        const PRESETS_DATA = {
-            "熊本熊卡": [
-                {
-                    name: "🇯🇵 指定通路 (Suica/藥妝)",
-                    limit: 8333,
-                    period: "每月",
-                    icon: "fa-torii-gate",
-                    note: "回饋8.5%。超過後降為2.5%。"
-                },
-                {
-                    name: "🇯🇵 PayPay 掃碼 (玉山Wallet)",
-                    limit: 2857,
-                    period: "每季",
-                    icon: "fa-qrcode",
-                    note: "回饋5%。額度極低(季限$100)，建議僅用於不能刷卡的小店。"
-                },
-                {
-                    name: "🇹🇼 悠遊卡自動加值",
-                    limit: 500,
-                    period: "每月",
-                    icon: "fa-train",
-                    note: "回饋10%。限「很友好」版。自動加值一次(500元)即滿。"
-                }
-            ],
-            "吉鶴卡": [
-                {
-                    name: "🇯🇵 Apple Pay (QUICPay)",
-                    limit: 40000,
-                    period: "每月",
-                    icon: "fa-mobile-alt",
-                    note: "登錄加碼1.5%(總4%)。上限$600/月。需綁定QUICPay。"
-                },
-                {
-                    name: "🇹🇼 國內日系名店 (UNIQLO/大創)",
-                    limit: 12500,
-                    period: "每月",
-                    icon: "fa-tshirt",
-                    note: "加碼4%(總5%)。上限$500/月。適合買衣服日用品。"
-                },
-                {
-                    name: "🇯🇵 日本熱門商店 (半年制)",
-                    limit: 20000,
-                    period: "活動期間",
-                    icon: "fa-store",
-                    note: "加碼3%。2026上半年總額度2萬台幣。包含指定超商/藥妝/樂園。"
-                }
-            ],
-            "星展 eco 卡": [
-                {
-                    name: "🇯🇵 日本實體消費 (含Apple Pay)",
-                    limit: 15000,
-                    period: "每月",
-                    icon: "fa-credit-card",
-                    note: "回饋5%。限實體刷卡/Apple Pay。上限600點(刷1.5萬)。"
-                }
-            ]
-        };
-
-        // State
-        let cards = [];
-
-        // Init
-        document.addEventListener('DOMContentLoaded', () => {
-            loadCards();
-            renderPresets();
-            renderCards();
+    function toggleCard(bank, name, org = 'visa') {
+      const idx = myWallet.findIndex(c => c.name === name);
+      if (idx > -1) {
+        myWallet.splice(idx, 1);
+        // Clean payMap
+        Object.keys(payMap).forEach(key => {
+          payMap[key] = payMap[key].filter(n => n !== name);
         });
+        // Clean mainCards
+        userProfile.mainCards = userProfile.mainCards.filter(n => n !== name);
+      } else {
+        myWallet.push({ bank, name, org });
+      }
 
-        function loadCards() {
-            const stored = localStorage.getItem('japan_travel_cards_2026');
-            if (stored) {
-                cards = JSON.parse(stored);
+      updateCartCount();
+      renderCards(bank); // Update UI
+      showToast(idx > -1 ? "已移除卡片" : "已加入卡片");
+    }
+
+    function updateCartCount() {
+      document.getElementById('cart-count').innerText = myWallet.length;
+    }
+
+    // Render Payments
+    function renderPaymentSetup() {
+      const container = document.getElementById('payment-mapping-list');
+      container.innerHTML = '';
+
+      if (myWallet.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:30px; color:#9CA3AF;">請先至「找卡」頁面加入卡片</div>`;
+        return;
+      }
+
+      PAY_METHODS.forEach(method => {
+        const div = document.createElement('div');
+        div.className = 'pay-section';
+
+        const selectedCards = payMap[method.name] || [];
+
+        div.innerHTML = `
+                <div class="pay-header">
+                    <div class="pay-icon"><i class="${method.icon}"></i></div>
+                    <span>${method.name}</span>
+                </div>
+              `;
+
+        const chipCont = document.createElement('div');
+        chipCont.className = 'chip-container';
+
+        myWallet.forEach(card => {
+          const chip = document.createElement('div');
+          const isSelected = selectedCards.includes(card.name);
+          chip.className = `mini-chip ${isSelected ? 'selected' : ''}`;
+          chip.innerText = card.name;
+          chip.onclick = () => {
+            if (!payMap[method.name]) payMap[method.name] = [];
+
+            if (isSelected) {
+              payMap[method.name] = payMap[method.name].filter(n => n !== card.name);
             } else {
-                // 預設不載入任何卡片，讓使用者自己選
-                saveCards();
+              payMap[method.name].push(card.name);
             }
-        }
-
-        function saveCards() {
-            localStorage.setItem('japan_travel_cards_2026', JSON.stringify(cards));
-            renderCards();
-        }
-
-        function renderPresets() {
-            const list = document.getElementById('preset-list');
-            list.innerHTML = '';
-
-            for (const [category, presets] of Object.entries(PRESETS_DATA)) {
-                let catIcon = '💳';
-                if (category === '熊本熊卡') catIcon = '🐻';
-                else if (category === '吉鶴卡') catIcon = '🪿';
-                else if (category === '星展 eco 卡') catIcon = '🌱';
-
-                let html = `<div class="preset-category">${catIcon} ${category}</div><div class="preset-group">`;
-
-                html += presets.map(p => `
-                    <div class="preset-btn" onclick="addPreset('${category}', '${p.name}', ${p.limit}, '${p.period}', '${p.note}')">
-                        <div class="preset-icon"><i class="fas ${p.icon}"></i></div>
-                        <div class="preset-info">
-                            <h4>${p.name}</h4>
-                            <p>上限 $${p.limit.toLocaleString()} / ${p.period}</p>
-                        </div>
-                    </div>
-                `).join('');
-
-                html += `</div>`;
-                list.innerHTML += html;
-            }
-        }
-
-        function renderCards() {
-            const container = document.getElementById('cards-container');
-
-            if (cards.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-passport"></i>
-                        <p>還沒有紀錄喔！<br>點擊右下角 + 開始規劃你的日旅攻略</p>
-                    </div>
-                `;
-                return;
-            }
-
-            // Build all HTML string first to improve performance
-            let fullHtml = '';
-
-            cards.forEach((card, index) => {
-                const percent = (card.current / card.limit) * 100;
-                let colorVar = '--primary';
-                if (card.category === '吉鶴卡') colorVar = '--secondary';
-                if (card.category === '星展 eco 卡') colorVar = '--eco';
-
-                let statusText = `還可刷 $${(card.limit - card.current).toLocaleString()}`;
-
-                if (percent >= 100) {
-                    colorVar = '--success'; // 達標用綠色
-                    statusText = '🎉 已達標上限！';
-                } else if (percent >= 80) {
-                    colorVar = '--warning';
-                }
-
-                // 處理超刷顯示
-                const isOver = card.current > card.limit;
-                if (isOver) {
-                    colorVar = '--text-sub'; // 超刷變灰
-                    statusText = `超刷 $${(card.current - card.limit).toLocaleString()} (回饋率降低)`;
-                }
-
-                // Emoji Icon
-                let catIcon = '💳';
-                if (card.category === '熊本熊卡') catIcon = '🐻';
-                else if (card.category === '吉鶴卡') catIcon = '🪿';
-                else if (card.category === '星展 eco 卡') catIcon = '🌱';
-
-                const html = `
-                    <div class="card-target" data-type="${card.category || '其他'}">
-                        <div class="card-header">
-                            <div class="card-title-group">
-                                <div class="card-type-label">
-                                    ${catIcon}
-                                    ${card.category || '其他'} 
-                                    <span class="period-tag" style="margin-left:4px;">${card.period}</span>
-                                </div>
-                                <div class="card-title">${card.name}</div>
-                            </div>
-                            <div class="delete-btn" onclick="deleteCard(${index})">
-                                <i class="fas fa-trash-alt"></i>
-                            </div>
-                        </div>
-
-                        <div class="current-spend"><span class="currency">$</span>${parseInt(card.current).toLocaleString()}</div>
-
-                        <div class="progress-section">
-                            <div class="progress-bar-bg">
-                                <div class="progress-bar-fill" style="width: ${Math.min(percent, 100)}%; background-color: var(${colorVar});"></div>
-                            </div>
-                            <div class="stats-row">
-                                <span style="color:var(${colorVar})">${Math.min(percent, 100).toFixed(1)}%</span>
-                                <span style="font-size:13px; color:#6B7280;">${statusText}</span>
-                            </div>
-                        </div>
-
-                        ${card.note ? `
-                        <div class="advisor-note">
-                            <strong><i class="fas fa-lightbulb" style="color:#F59E0B"></i> 攻略筆記：</strong>
-                            ${card.note}
-                        </div>
-                        ` : ''}
-
-                        <div class="action-row">
-                            <input type="number" id="amount-${index}" class="amount-input" placeholder="輸入金額" inputmode="numeric" onkeydown="if(event.key==='Enter'){updateCard(${index}, 1); this.blur();}">
-                            <button class="btn btn-add" onclick="updateCard(${index}, 1)">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                            <button class="btn btn-sub" onclick="updateCard(${index}, -1)">
-                                <i class="fas fa-minus"></i>
-                            </button>
-                        </div>
-                    </div>
-                `;
-                fullHtml += html;
-            });
-
-            container.innerHTML = fullHtml;
-        }
-
-        function addPreset(category, name, limit, period, note) {
-            cards.push({
-                category,
-                name,
-                limit,
-                period,
-                note,
-                current: 0,
-                id: Date.now()
-            });
-            saveCards();
-            closeAddModal();
-        }
-
-        function addCustomCard() {
-            const category = document.getElementById('input-category').value;
-            const name = document.getElementById('input-name').value.trim();
-            const limit = parseInt(document.getElementById('input-limit').value);
-            const period = document.getElementById('input-period').value;
-            const note = document.getElementById('input-note').value.trim();
-
-            if (!name || isNaN(limit) || limit <= 0) {
-                alert('請輸入正確的名稱與上限金額');
-                return;
-            }
-
-            cards.push({
-                category,
-                name,
-                limit,
-                period,
-                note,
-                current: 0,
-                id: Date.now()
-            });
-
-            saveCards();
-            closeAddModal();
-
-            // Clear inputs
-            document.getElementById('input-name').value = '';
-            document.getElementById('input-limit').value = '';
-            document.getElementById('input-note').value = '';
-        }
-
-        function deleteCard(index) {
-            if (confirm('確定要刪除這個攻略目標嗎？')) {
-                cards.splice(index, 1);
-                saveCards();
-            }
-        }
-
-        function updateCard(index, multiplier) {
-            const input = document.getElementById(`amount-${index}`);
-            const val = Number(input.value); // Better than parseInt for safety
-
-            if (isNaN(val) || val <= 0) {
-                alert('請輸入有效金額');
-                return;
-            }
-
-            // Safety check for data integrity
-            if (typeof cards[index].current !== 'number') {
-                cards[index].current = parseFloat(cards[index].current) || 0;
-            }
-
-            // Update
-            cards[index].current += val * multiplier;
-            if (cards[index].current < 0) cards[index].current = 0;
-
-            saveCards(); // saveCards calls renderCards, which refreshes the input ID
-        }
-
-        // --- Settings / Backup Logic ---
-        function openSettingsModal() {
-            document.getElementById('settings-modal').style.display = 'flex';
-            initSettingsUI(); // Load API Key
-            // Populate export area
-            const data = JSON.stringify(cards);
-            document.getElementById('export-area').value = data;
-        }
-
-        function closeSettingsModal() {
-            document.getElementById('settings-modal').style.display = 'none';
-        }
-
-        function copyExportData() {
-            const copyText = document.getElementById("export-area");
-            copyText.select();
-            copyText.setSelectionRange(0, 99999); // For mobile devices
-
-            // Try modern clipboard API first
-            if (navigator.clipboard && window.isSecureContext) {
-                navigator.clipboard.writeText(copyText.value).then(() => {
-                    alert("代碼已複製！請保存到安全的地方。");
-                });
-            } else {
-                // Fallback
-                document.execCommand("copy");
-                alert("代碼已複製！請保存到安全的地方。");
-            }
-        }
-
-        function importData() {
-            const input = document.getElementById('import-input').value.trim();
-            if (!input) return alert("請貼上備份代碼");
-
-            try {
-                const data = JSON.parse(input);
-                if (Array.isArray(data)) {
-                    if (confirm("確定要載入備份嗎？這將會覆蓋目前的資料！")) {
-                        cards = data;
-                        saveCards();
-                        alert("資料還原成功！");
-                        closeSettingsModal();
-                        document.getElementById('import-input').value = '';
-                    }
-                } else {
-                    alert("格式錯誤：代碼無效");
-                }
-            } catch (e) {
-                alert("格式錯誤：請檢查代碼是否完整");
-            }
-        }
-
-        function clearAllData() {
-            if (confirm("⚠️ 警告：確定要清除所有資料嗎？此動作無法復原！")) {
-                cards = [];
-                saveCards();
-                closeSettingsModal();
-            }
-        }
-
-        // --- Gemini AI Logic ---
-
-        async function askGemini() {
-            const input = document.getElementById('ai-input');
-            const responseArea = document.getElementById('ai-response-area');
-            const query = input.value.trim();
-
-            if (!query) return;
-
-            // 1. Show User Message
-            responseArea.innerHTML += `<div class="ai-message user">${query}</div>`;
-            input.value = '';
-
-            // 2. Show Loading
-            const loadingId = 'loading-' + Date.now();
-            responseArea.innerHTML += `<div class="ai-message bot" id="${loadingId}">思考中<span class="loading-dots"></span></div>`;
-            responseArea.scrollTop = responseArea.scrollHeight;
-
-            try {
-                // Construct Prompt
-                const systemPrompt = `你是一個專業的日旅信用卡理財顧問，專精於「玉山熊本熊卡」、「聯邦吉鶴卡」與「星展 eco 永續極簡卡」。
-                你的任務是根據用戶目前的「累積消費狀態」(State) 以及他們的「購物計畫」(Query)，提供精準的建議。
-                
-                2026年(上半年)卡片規則重點：
-                
-                【🐻 玉山熊本熊卡 (JCB)】
-                1. 日本指定通路(BicCamera, 松本清, Suica儲值等) 加碼6% (總共8.5%)。加碼部分上限500元台幣/月 (約刷8333台幣)。
-                2. 日本PayPay掃碼 (綁定Wallet) 加碼3.5% (總共5%)。加碼部分上限100元台幣/季 (約刷2857台幣)。注意是每季。
-                3. 一般消費 2.5% 無上限。
-
-                【🪿 聯邦吉鶴卡】
-                1. 日本 Apple Pay (QUICPay) 登錄加碼 1.5% (總共4%)。加碼上限 600元/月 (約刷 40,000台幣)。
-                2. 國內日系名店 (UNIQLO/DAISO等) 加碼 4% (總共5%)。加碼上限 500元/月 (約刷 12,500台幣)。
-                3. 日本熱門商店 (超商/藥妝/樂園) 加碼 3%。注意上限是「活動期間(半年) 600元」，代表半年只能刷 20,000元。
-                4. 日幣一般消費 2.5% 無上限。
-
-                【🌱 星展 eco 永續極簡卡】
-                1. 日本實體消費 (含 Apple Pay) 享 5% 回饋。
-                2. 加碼 4% 上限 600 點/期，代表刷 15,000 台幣達上限。
-                3. 超過後回歸 1% 無上限。
-                4. 僅限實體交易，網路/訂房不適用。
-
-                用戶目前狀態 JSON: ${JSON.stringify(cards)}
-                (注意: 'limit'是該類別的上限額度, 'current'是目前已用金額。單位皆為台幣 TWD)
-
-                請直接回答用戶問題。
-                1. 若用戶詢問刷哪張卡，請比較兩者回饋率與剩餘額度。
-                2. 若涉及日幣，請用匯率(約0.22)換算。
-                3. 優先推薦回饋率高且還有額度的卡片。
-                回答請簡短、友善。
-                `;
-
-                // Call API
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: query }] }],
-                        systemInstruction: { parts: [{ text: systemPrompt }] }
-                    })
-                });
-
-                if (!response.ok) throw new Error('API Error');
-
-                const data = await response.json();
-                const aiText = data.candidates[0].content.parts[0].text;
-
-                // 3. Update UI
-                const loadingEl = document.getElementById(loadingId);
-                loadingEl.innerText = aiText;
-
-            } catch (e) {
-                console.error(e);
-                document.getElementById(loadingId).innerText = "抱歉，AI 目前連線不穩，請稍後再試。";
-            }
-        }
-
-        // UI Helpers
-        function openAddModal() {
-            document.getElementById('add-modal').style.display = 'flex';
-        }
-        function closeAddModal() {
-            document.getElementById('add-modal').style.display = 'none';
-        }
-
-        function openAIModal() {
-            document.getElementById('ai-modal').style.display = 'flex';
-            document.getElementById('ai-input').focus();
-        }
-        function closeAIModal() {
-            document.getElementById('ai-modal').style.display = 'none';
-        }
-
-        // Close modal on outside click
-        document.getElementById('add-modal').addEventListener('click', function (e) {
-            if (e.target === this) closeAddModal();
+            renderPaymentSetup(); // Re-render to show state
+          };
+          chipCont.appendChild(chip);
         });
-        document.getElementById('ai-modal').addEventListener('click', function (e) {
-            if (e.target === this) closeAIModal();
+
+        div.appendChild(chipCont);
+        container.appendChild(div);
+      });
+    }
+
+    // Home & Visuals
+    function updateHomeStats() {
+      // Numbers
+      document.getElementById('count-cards').innerText = myWallet.length;
+      const linkedCount = Object.values(payMap).reduce((acc, curr) => acc + curr.length, 0);
+      document.getElementById('count-pay').innerText = linkedCount;
+
+      // Visual Cards
+      const preview = document.getElementById('wallet-preview');
+      preview.innerHTML = '';
+
+      if (myWallet.length === 0) {
+        preview.innerHTML = `
+                <div style="text-align:center; padding:30px; border:2px dashed #E5E7EB; border-radius:16px; color:#9CA3AF;">
+                    <i class="fas fa-wallet" style="font-size:24px; margin-bottom:8px;"></i>
+                    <p style="font-size:13px;">錢包是空的</p>
+                </div>`;
+        return;
+      }
+
+      // Create two-column grid container
+      const gridContainer = document.createElement('div');
+      gridContainer.className = 'wallet-grid';
+
+      myWallet.forEach(card => {
+        const div = document.createElement('div');
+        div.className = 'visual-card';
+        div.setAttribute('data-bank', card.bank);
+
+        const cardOrg = card.org || 'visa';
+        const orgIcon = cardOrg === 'mastercard' ? 'fa-cc-mastercard' :
+          cardOrg === 'jcb' ? 'fa-cc-jcb' : 'fa-cc-visa';
+
+        div.innerHTML = `
+                <div class="vc-top">
+                    <div class="vc-chip"></div>
+                    <i class="fab ${orgIcon}" style="font-size:24px; opacity:0.8;"></i>
+                </div>
+                <div class="vc-name">${card.name}</div>
+                <div class="vc-bank">${card.bank.split(" ")[1] || card.bank}</div>
+              `;
+        gridContainer.appendChild(div);
+      });
+
+      preview.appendChild(gridContainer);
+    }
+
+    function finishSave(btn, oldText) {
+      btn.innerHTML = oldText;
+      btn.disabled = false;
+      showToast("✅ 設定已同步至雲端");
+    }
+
+    // Utils
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.innerHTML = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 3000);
+    }
+    function showModal(msg, icon = "👋") {
+      document.getElementById('modal-icon').innerText = icon;
+      document.getElementById('modal-msg').innerText = msg;
+      document.getElementById('custom-modal').style.display = 'flex';
+    }
+    function closeModal() {
+      document.getElementById('custom-modal').style.display = 'none';
+    }
+
+    // Settings Page Functions
+    let userProfile = {
+      gender: '',
+      birthMonth: '',
+      cardHabits: [],
+      mainCards: [],
+      wantedFeatures: '',
+      supportPrice: 0,
+      painPoints: ''
+    };
+
+    function selectGender(el) {
+      document.querySelectorAll('[data-gender]').forEach(e => e.classList.remove('selected'));
+      el.classList.add('selected');
+      userProfile.gender = el.dataset.gender;
+    }
+
+    function selectPrice(el) {
+      document.querySelectorAll('[data-price]').forEach(e => e.classList.remove('selected'));
+      el.classList.add('selected');
+      userProfile.supportPrice = parseInt(el.dataset.price);
+    }
+
+    function toggleOtherHabit(checkbox) {
+      const textInput = document.getElementById('other-habit-text');
+      textInput.style.display = checkbox.querySelector('input').checked ? 'block' : 'none';
+      updateProfile();
+    }
+
+    function toggleMainCard(cardName) {
+      const idx = userProfile.mainCards.indexOf(cardName);
+      if (idx > -1) {
+        userProfile.mainCards.splice(idx, 1);
+      } else if (userProfile.mainCards.length < 3) {
+        userProfile.mainCards.push(cardName);
+      } else {
+        showToast('最多選擇 3 張主力卡片');
+        return;
+      }
+      renderMainCards();
+    }
+
+    function renderMainCards() {
+      const container = document.getElementById('main-card-list');
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (myWallet.length === 0) {
+        container.innerHTML = '<div style="color:#9CA3AF; font-size:13px;">請先加入卡片</div>';
+        return;
+      }
+
+      myWallet.forEach(card => {
+        const chip = document.createElement('div');
+        const isSelected = userProfile.mainCards.includes(card.name);
+        chip.className = `mini-chip ${isSelected ? 'selected' : ''}`;
+        chip.innerText = card.name;
+        chip.onclick = () => toggleMainCard(card.name);
+        container.appendChild(chip);
+      });
+    }
+
+    function updateProfile() {
+      // Get birth month
+      userProfile.birthMonth = document.getElementById('birth-month')?.value || '';
+
+      // Get habits
+      userProfile.cardHabits = [];
+      document.querySelectorAll('input[name="habit"]:checked').forEach(cb => {
+        userProfile.cardHabits.push(cb.value);
+      });
+      const otherText = document.getElementById('other-habit-text')?.value;
+      if (otherText) userProfile.cardHabits.push(otherText);
+
+      // Get textarea values
+      userProfile.wantedFeatures = document.getElementById('wanted-features')?.value || '';
+      userProfile.painPoints = document.getElementById('pain-points')?.value || '';
+    }
+
+    function renderSettingsView() {
+      renderMainCards();
+
+      // Restore saved profile values
+      if (userProfile.gender) {
+        document.querySelectorAll('[data-gender]').forEach(e => {
+          if (e.dataset.gender === userProfile.gender) e.classList.add('selected');
         });
-        document.getElementById('settings-modal').addEventListener('click', function (e) {
-            if (e.target === this) closeSettingsModal();
+      }
+      if (userProfile.birthMonth) {
+        document.getElementById('birth-month').value = userProfile.birthMonth;
+      }
+      if (userProfile.supportPrice) {
+        document.querySelectorAll('[data-price]').forEach(e => {
+          if (parseInt(e.dataset.price) === userProfile.supportPrice) e.classList.add('selected');
         });
-    </script>
+      }
+    }
+  </script>
 </body>
 
 </html>

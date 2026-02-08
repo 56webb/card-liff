@@ -514,22 +514,9 @@ async function askQuestion() {
 
             // ---除錯資訊開始---
             if (data.sources && data.sources.length > 0) {
-                const firstUri = data.sources[0].uri;
-                addLog(`🔍 Debug Source: ...${firstUri.slice(-30)}`, 'info');
-
-                const mapKeys = Object.keys(filenameMap || {});
-                if (mapKeys.length > 0) {
-                    addLog(`🔍 Debug MapKey: ...${mapKeys[0].slice(-30)}`, 'info');
-                } else {
-                    addLog(`⚠️ Debug: 前端對照表為空`, 'warning');
-                }
+                // Normal case
             } else {
                 addLog('ℹ️ 此回答未引用任何文件來源', 'info');
-                // 即使沒有來源，也印出 Map Key 確認對照表是否載入成功
-                const mapKeys = Object.keys(filenameMap || {});
-                if (mapKeys.length > 0) {
-                    addLog(`🔍 Debug MapKey (已載入): ...${mapKeys[0].slice(-30)}`, 'info');
-                }
             }
             // ---除錯資訊結束---
 
@@ -550,8 +537,7 @@ async function askQuestion() {
                     const uri = s.uri;
 
                     // 嘗試匹配中文名稱
-                    // 對照表格式: "fileSearchStores/.../documents/xxx": "中文檔名.pdf"
-                    // URI 格式可能包含 documents/xxx
+                    // 策略 1: 直接比對 filenameMap (精確 URI 匹配)
                     for (const [docPath, displayName] of Object.entries(filenameMap)) {
                         const docId = docPath.split('/').pop();
                         if (uri.includes(docId)) {
@@ -559,6 +545,22 @@ async function askQuestion() {
                             break;
                         }
                     }
+
+                    // 策略 2: 如果策略 1 失敗，嘗試從 cachedDocs (文件列表) 找
+                    // 因為 Google有時回傳短 ID (例如 6qxye38cnig2)，是完整 ID (6qxye38cnig2-z9oa6iu7791h) 的前綴
+                    if (finalTitle === s.title && cachedDocs && cachedDocs.length > 0) {
+                        const potentialMatch = cachedDocs.find(d => {
+                            // 檢查 doc.name 是否包含 title (假設 title 是 ID)
+                            // 或 uri 是否包含 doc ID 的前段
+                            const docId = d.name.split('/').pop();
+                            return docId.includes(s.title) || s.title.includes(docId) || uri.includes(docId);
+                        });
+                        if (potentialMatch) {
+                            finalTitle = potentialMatch.finalName; // 使用列表上已經解析好的中文名
+                            // addLog(`💡 透過列表推斷來源: ${s.title} -> ${finalTitle}`, 'success');
+                        }
+                    }
+
                     return { ...s, title: finalTitle };
                 });
 

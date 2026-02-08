@@ -1,0 +1,42 @@
+Metadata-Version: 2.4
+Name: cardway
+Version: 0.1.0
+Summary: AI Credit Card Optimization Advisor System
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: fastapi
+Requires-Dist: uvicorn
+Requires-Dist: supabase
+Requires-Dist: google-generativeai
+Requires-Dist: playwright
+Requires-Dist: html2text
+Requires-Dist: python-dotenv
+Requires-Dist: psycopg2-binary
+Requires-Dist: pgvector
+
+# AI 信用卡最佳回饋顧問系統
+
+## 專案目標
+建立一個自動化、高品質的信用卡資訊系統，從銀行官網爬取最新權益，並根據使用者錢包與消費場景，計算出最佳刷卡策略。
+
+## 核心原則
+- **Quality > Speed**：寧可慢，不可錯。
+- **Cost Efficiency**：使用 MD5 Hash 防止重複 AI 呼叫。
+- **Hybrid RAG**：Text-to-SQL + Vector Search。
+- **Reasoning via Code**：使用 Python 程式碼執行複雜回饋計算。
+
+## 技術堆疊
+- **Language**: Python 3.10+ (managed by `uv`)
+- **Database**: PostgreSQL (Supabase) with `pgvector`
+- **AI Models**: Gemini 1.5 Pro (ETL), Gemini 1.5 Flash (Query)
+- **Crawler**: Playwright + html2text
+- **Infra**: Google Cloud Run / GitHub Actions
+
+## 功能模組
+1. **Module A: 智能爬蟲** - 自動抓取、比對版本、AI 解析權益。
+2. **Module B: 混合檢索** - 判斷意圖，路由至 SQL 查詢或向量檢索。
+3. **Module C: 推薦引擎** - 根據用戶錢包與場景，生成代碼計算最佳回饋。
+
+## 開發指南
+請參考 `dev_log.md` 查看開發日誌。
+請參考 `implementation_plan.md` 查看實作計畫。

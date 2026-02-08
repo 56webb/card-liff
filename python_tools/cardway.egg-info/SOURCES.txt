@@ -1,0 +1,9 @@
+README.md
+pyproject.toml
+ai/parser.py
+cardway.egg-info/PKG-INFO
+cardway.egg-info/SOURCES.txt
+cardway.egg-info/dependency_links.txt
+cardway.egg-info/requires.txt
+cardway.egg-info/top_level.txt
+crawler/crawler.py

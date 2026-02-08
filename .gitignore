@@ -1,9 +1,8 @@
 .DS_Store
 node_modules/
-<<<<<<< HEAD
-.env
-=======
 dist/
 .env
 *.log
->>>>>>> 45483e7 (chore: 加入 .gitignore 並更新專案檔案)
+__pycache__/
+.venv/
+*.pyc

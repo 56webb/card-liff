@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<<<<<<< HEAD
+    <title>CardWay - 選擇服務</title>
+    <style>
+=======
+    <title>CardWay | 日旅神卡攻略 (熊本熊/吉鶴/星展)</title>
+    <!-- 引入 Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Outfit:wght@400;600&display=swap"
+        rel="stylesheet">
+    <!-- 引入 FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            /* 配色主題 */
+            --primary: #DC2626;
+            /* 熊本熊紅 */
+            --secondary: #BE123C;
+            /* 吉鶴深紅 */
+            --eco: #0D9488;
+            /* 星展 Eco 綠 (Teal) */
+
+            --bg: #F3F4F6;
+            --surface: #FFFFFF;
+            --text-main: #1F2937;
+            --text-sub: #6B7280;
+            --border: #E5E7EB;
+            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            --danger: #EF4444;
+            --warning: #F59E0B;
+            --success: #10B981;
+            --tag-bg: #FEF2F2;
+            --tag-text: #991B1B;
+            --ai-color: #7C3AED;
+            --ai-bg: #F3E8FF;
+        }
+
+>>>>>>> 35505d92eda3e38170e39b884881a0476f1cf2b0
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+<<<<<<< HEAD
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 24px;
+            padding: 48px 32px;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #1a202c;
+            margin-bottom: 12px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #718096;
+            margin-bottom: 32px;
+            font-size: 14px;
+        }
+
+        .service-card {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: block;
+            border: 2px solid transparent;
+        }
+
+        .service-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+            border-color: #667eea;
+        }
+
+        .service-card .icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .service-card h2 {
+            color: #2d3748;
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .service-card p {
+            color: #718096;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .primary h2,
+        .primary p {
+            color: white;
+=======
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Outfit', 'Noto Sans TC', sans-serif;
+            background: var(--bg);
+            color: var(--text-main);
+            padding-bottom: 100px;
+        }
+
+        .header {
+            background: var(--surface);
+            padding: 16px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid var(--primary);
+        }
+
+        .brand {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand i {
+            color: var(--primary);
+            font-size: 24px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* AI Button in Header */
+        .ai-header-btn {
+            background: linear-gradient(135deg, #7C3AED, #DB2777);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 5px rgba(124, 58, 237, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        /* Settings Button */
+        .settings-btn {
+            background: #F3F4F6;
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 6px rgba(124, 58, 237, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(124, 58, 237, 0);
+            }
+        }
+
+        /* Card Styles */
+        .card-target {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Specific Styles for Card Types */
+        .card-target[data-type="熊本熊"] {
+            border-left: 5px solid #EF4444;
+        }
+
+        .card-target[data-type="吉鶴卡"] {
+            border-left: 5px solid #BE123C;
+        }
+
+        .card-target[data-type="星展 eco 卡"] {
+            border-left: 5px solid #0D9488;
+            /* Teal */
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .card-title-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .card-type-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-sub);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .period-tag {
+            display: inline-block;
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            background: var(--tag-bg);
+            color: var(--tag-text);
+            font-weight: 600;
+            width: fit-content;
+        }
+
+        .advisor-note {
+            background: #F9FAFB;
+            border-left: 3px solid var(--text-sub);
+            padding: 8px 12px;
+            margin-top: 12px;
+            font-size: 13px;
+            color: var(--text-sub);
+            line-height: 1.5;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .advisor-note strong {
+            color: var(--text-main);
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .delete-btn {
+            color: #9CA3AF;
+            cursor: pointer;
+            padding: 8px;
+            transition: color 0.2s;
+        }
+
+        .delete-btn:hover {
+            color: var(--danger);
+        }
+
+        /* Progress Bar */
+        .progress-section {
+            margin: 16px 0;
+        }
+
+        .progress-bar-bg {
+            background: #E5E7EB;
+            height: 12px;
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--primary);
+            width: 0%;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s;
+        }
+
+        /* Custom progress bar colors based on card type context if needed, 
+           currently using generic logic in JS */
+
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            margin-top: 8px;
+            font-weight: 500;
+        }
+
+        .current-spend {
+            font-size: 28px;
+            font-weight: 800;
+            margin: 4px 0;
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .currency {
+            font-size: 16px;
+            color: var(--text-sub);
+            font-weight: 500;
+        }
+
+        /* Inputs */
+        .action-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+            border-top: 1px solid var(--bg);
+            padding-top: 16px;
+        }
+
+        .amount-input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .amount-input:focus {
+            border-color: var(--primary);
+        }
+
+        .btn {
+            padding: 0 20px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: transform 0.1s;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-add {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-sub {
+            background: #FEE2E2;
+            color: var(--danger);
+        }
+
+        .btn-outline {
+            border: 1px solid var(--border);
+            background: white;
+            color: var(--text-main);
+        }
+
+        /* Floating Add Button */
+        .fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 60px;
+            height: 60px;
+            background: var(--text-main);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            z-index: 90;
+            transition: transform 0.2s;
+        }
+
+        .fab:hover {
+            transform: rotate(90deg);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal {
+            background: white;
+            padding: 24px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 400px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal h2 {
+            margin-bottom: 20px;
+            font-size: 20px;
+            color: var(--text-main);
+        }
+
+        .preset-category {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-sub);
+            margin: 12px 0 8px;
+            padding-left: 4px;
+        }
+
+        .preset-group {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .preset-btn {
+            background: white;
+            border: 1px solid var(--border);
+            padding: 12px;
+            border-radius: 12px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .preset-btn:hover {
+            border-color: var(--primary);
+            background: #FEF2F2;
+        }
+
+        .preset-icon {
+            width: 32px;
+            height: 32px;
+            background: #F3F4F6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-main);
+        }
+
+        .preset-info h4 {
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+
+        .preset-info p {
+            font-size: 12px;
+            color: var(--text-sub);
+        }
+
+        .divider {
+            text-align: center;
+            margin: 16px 0;
+            font-size: 12px;
+            color: var(--text-sub);
+            position: relative;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 40%;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .divider::before {
+            left: 0;
+        }
+
+        .divider::after {
+            right: 0;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            color: var(--text-sub);
+            margin-bottom: 6px;
+            margin-top: 12px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 16px;
+        }
+
+        textarea.form-input {
+            font-family: monospace;
+            font-size: 12px;
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .btn-full {
+            flex: 1;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 16px;
+        }
+
+        .btn-cancel {
+            background: #F3F4F6;
+            color: var(--text-main);
+        }
+
+        /* AI Chat Styles */
+        .ai-chat-container {
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .ai-message {
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .ai-message.user {
+            background: #F3F4F6;
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+            max-width: 85%;
+        }
+
+        .ai-message.bot {
+            background: var(--ai-bg);
+            color: #4C1D95;
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+            max-width: 95%;
+            border: 1px solid #E9D5FF;
+        }
+
+        .loading-dots {
+            display: inline-block;
+        }
+
+        .loading-dots:after {
+            content: '.';
+            animation: dots 1.5s steps(5, end) infinite;
+        }
+
+        @keyframes dots {
+
+            0%,
+            20% {
+                content: '.';
+            }
+
+            40% {
+                content: '..';
+            }
+
+            60% {
+                content: '...';
+            }
+
+            80%,
+            100% {
+                content: '';
+            }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-sub);
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            color: #D1D5DB;
+>>>>>>> 35505d92eda3e38170e39b884881a0476f1cf2b0
+        }
+    </style>
+</head>
+
+<body>
+<<<<<<< HEAD
+    <div class="container">
+        <h1>🎴 CardWay</h1>
+        <p class="subtitle">請選擇您要使用的服務</p>
+
+        <a href="./src/cardlimit/" class="service-card primary">
+            <span class="icon">✈️</span>
+            <h2>日旅神卡攻略</h2>
+            <p>熊本熊、吉鶴、星展 eco 額度管理 + AI 消費建議</p>
+        </a>
+
+        <a href="./src/line-liff-login/" class="service-card">
+            <span class="icon">💳</span>
+            <h2>CardWay LIFF</h2>
+            <p>完整的信用卡管理系統（需透過 LINE 登入）</p>
+        </a>
+    </div>
+=======
+
+    <div class="header">
+        <div class="brand">
+            <i class="fas fa-plane-departure"></i>
+            <div>
+                日旅神卡攻略
+            </div>
+        </div>
+        <div class="header-actions">
+            <button class="ai-header-btn" onclick="openAIModal()">
+                <i class="fas fa-sparkles"></i> AI
+            </button>
+            <button class="settings-btn" onclick="openSettingsModal()">
+                <i class="fas fa-cog"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="container" id="cards-container">
+        <!-- Cards will be injected here -->
+    </div>
+
+    <!-- FAB -->
+    <div class="fab" onclick="openAddModal()">
+        <i class="fas fa-plus"></i>
+    </div>
+
+    <!-- Add Card Modal -->
+    <div class="modal-overlay" id="add-modal">
+        <div class="modal">
+            <h2>新增攻略項目</h2>
+
+            <div class="form-label">快速選擇 (顧問精選)</div>
+            <div id="preset-list">
+                <!-- Presets injected via JS -->
+            </div>
+
+            <div class="divider">或自訂項目</div>
+
+            <label class="form-label">卡片歸屬</label>
+            <select id="input-category" class="form-input">
+                <option value="熊本熊">🐻 熊本熊卡</option>
+                <option value="吉鶴卡">🪿 吉鶴卡</option>
+                <option value="星展 eco 卡">🌱 星展 eco 卡</option>
+                <option value="其他">其他</option>
+            </select>
+
+            <label class="form-label">項目名稱</label>
+            <input type="text" id="input-name" class="form-input" placeholder="例如：自訂活動">
+
+            <label class="form-label">上限金額 (NT$)</label>
+            <input type="number" id="input-limit" class="form-input" placeholder="0" inputmode="numeric">
+
+            <label class="form-label">週期標籤</label>
+            <select id="input-period" class="form-input">
+                <option value="每月">每月重置</option>
+                <option value="每季">每季重置</option>
+                <option value="活動期間">活動期間 (一次性)</option>
+            </select>
+
+            <label class="form-label">顧問點評/備註</label>
+            <input type="text" id="input-note" class="form-input" placeholder="簡短備註 (選填)">
+
+            <div class="modal-actions">
+                <button class="btn btn-full btn-cancel" onclick="closeAddModal()">取消</button>
+                <button class="btn btn-full btn-add" onclick="addCustomCard()">新增自訂</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings/Backup Modal -->
+    <div class="modal-overlay" id="settings-modal">
+        <div class="modal">
+            <h2><i class="fas fa-save"></i> 資料管理</h2>
+            <p style="font-size:13px; color:var(--text-sub); margin-bottom:16px;">
+                資料目前自動儲存於此瀏覽器。
+            </p>
+
+            <!-- API Key Section for Zeabur/Static/Local -->
+            <div id="apikey-section" style="margin-bottom:20px; padding-bottom:16px; border-bottom:1px solid #E5E7EB;">
+                <label class="form-label" style="color:var(--primary); font-weight:700;">🔑 Gemini API Key 設定</label>
+                <div style="font-size:12px; color:var(--text-sub); margin-bottom:8px;">
+                    若非使用 GAS 部署 (如 Zeabur)，請在此填入 Key。
+                </div>
+                <input type="password" id="input-apikey" class="form-input" placeholder="AIzaSy..."
+                    onchange="saveApiKey()">
+            </div>
+
+            <label class="form-label">匯出備份 (複製此代碼保存)</label>
+            <textarea id="export-area" class="form-input" readonly onclick="this.select()"></textarea>
+            <div style="display:flex; gap:8px;">
+                <button class="btn btn-full btn-add" onclick="copyExportData()">
+                    <i class="fas fa-copy" style="margin-right:8px;"></i> 複製代碼
+                </button>
+            </div>
+
+            <div class="divider">還原資料</div>
+
+            <label class="form-label">匯入備份 (貼上代碼)</label>
+            <input type="text" id="import-input" class="form-input" placeholder="在此貼上備份代碼...">
+            <button class="btn btn-full btn-outline" onclick="importData()">
+                <i class="fas fa-file-import" style="margin-right:8px;"></i> 載入備份
+            </button>
+
+            <div class="divider">危險區域</div>
+            <button class="btn btn-full btn-sub" onclick="clearAllData()">
+                <i class="fas fa-trash-alt" style="margin-right:8px;"></i> 清除所有資料
+            </button>
+
+            <div class="modal-actions">
+                <button class="btn btn-full btn-cancel" onclick="closeSettingsModal()">關閉</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Modal -->
+    <div class="modal-overlay" id="ai-modal">
+        <div class="modal">
+            <h2 style="display:flex; align-items:center; gap:8px;">
+                <i class="fas fa-sparkles" style="color:#7C3AED;"></i>
+                AI 消費顧問
+            </h2>
+            <p style="font-size:13px; color:var(--text-sub); margin-bottom:16px;">
+                輸入你想買的東西與金額，AI 會比較「熊本熊、吉鶴、星展 eco」的優惠，並根據您目前的額度狀態提供建議。
+            </p>
+
+            <div class="ai-chat-container" id="ai-response-area">
+                <!-- Chat history -->
+            </div>
+
+            <div style="margin-top:16px; display:flex; gap:8px;">
+                <input type="text" id="ai-input" class="form-input" style="margin-bottom:0;"
+                    placeholder="例：在 UNIQLO 買衣服 3000 元">
+                <button class="btn btn-add" style="background:#7C3AED; padding:0 16px;" onclick="askGemini()">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn btn-full btn-cancel" onclick="closeAIModal()">關閉</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global Error Handler for Mobile Debugging
+        window.onerror = function (msg, url, line, col, error) {
+            // alert("JS Error: " + msg + "\nLine: " + line); // Disable for production
+            return false;
+        };
+
+        // Gemini API Configuration
+        let apiKey = "<?!= apiKey ?>";
+
+        // 1. Try generic check for GAS tag
+        if (apiKey.indexOf("<" + "?") !== -1 || !apiKey) {
+            apiKey = "";
+        }
+
+        // 2. Load from LocalStorage (Priority for Zeabur/Static)
+        const localKey = localStorage.getItem('gemini_api_key');
+        if (localKey) {
+            apiKey = localKey;
+        }
+
+        function saveApiKey() {
+            const val = document.getElementById('input-apikey').value.trim();
+            if (val) {
+                localStorage.setItem('gemini_api_key', val);
+                apiKey = val;
+                alert("API Key 已儲存！");
+            }
+        }
+
+        // On Open Settings, fill the input
+        function initSettingsUI() {
+            const stored = localStorage.getItem('gemini_api_key');
+            if (stored && document.getElementById('input-apikey')) {
+                document.getElementById('input-apikey').value = stored;
+            }
+        }
+
+        // 2026 權益預設資料 (熊本熊 + 吉鶴 + 星展eco)
+
+        // 2026 權益預設資料 (熊本熊 + 吉鶴 + 星展eco)
+        const PRESETS_DATA = {
+            "熊本熊卡": [
+                {
+                    name: "🇯🇵 指定通路 (Suica/藥妝)",
+                    limit: 8333,
+                    period: "每月",
+                    icon: "fa-torii-gate",
+                    note: "回饋8.5%。超過後降為2.5%。"
+                },
+                {
+                    name: "🇯🇵 PayPay 掃碼 (玉山Wallet)",
+                    limit: 2857,
+                    period: "每季",
+                    icon: "fa-qrcode",
+                    note: "回饋5%。額度極低(季限$100)，建議僅用於不能刷卡的小店。"
+                },
+                {
+                    name: "🇹🇼 悠遊卡自動加值",
+                    limit: 500,
+                    period: "每月",
+                    icon: "fa-train",
+                    note: "回饋10%。限「很友好」版。自動加值一次(500元)即滿。"
+                }
+            ],
+            "吉鶴卡": [
+                {
+                    name: "🇯🇵 Apple Pay (QUICPay)",
+                    limit: 40000,
+                    period: "每月",
+                    icon: "fa-mobile-alt",
+                    note: "登錄加碼1.5%(總4%)。上限$600/月。需綁定QUICPay。"
+                },
+                {
+                    name: "🇹🇼 國內日系名店 (UNIQLO/大創)",
+                    limit: 12500,
+                    period: "每月",
+                    icon: "fa-tshirt",
+                    note: "加碼4%(總5%)。上限$500/月。適合買衣服日用品。"
+                },
+                {
+                    name: "🇯🇵 日本熱門商店 (半年制)",
+                    limit: 20000,
+                    period: "活動期間",
+                    icon: "fa-store",
+                    note: "加碼3%。2026上半年總額度2萬台幣。包含指定超商/藥妝/樂園。"
+                }
+            ],
+            "星展 eco 卡": [
+                {
+                    name: "🇯🇵 日本實體消費 (含Apple Pay)",
+                    limit: 15000,
+                    period: "每月",
+                    icon: "fa-credit-card",
+                    note: "回饋5%。限實體刷卡/Apple Pay。上限600點(刷1.5萬)。"
+                }
+            ]
+        };
+
+        // State
+        let cards = [];
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCards();
+            renderPresets();
+            renderCards();
+        });
+
+        function loadCards() {
+            const stored = localStorage.getItem('japan_travel_cards_2026');
+            if (stored) {
+                cards = JSON.parse(stored);
+            } else {
+                // 預設不載入任何卡片，讓使用者自己選
+                saveCards();
+            }
+        }
+
+        function saveCards() {
+            localStorage.setItem('japan_travel_cards_2026', JSON.stringify(cards));
+            renderCards();
+        }
+
+        function renderPresets() {
+            const list = document.getElementById('preset-list');
+            list.innerHTML = '';
+
+            for (const [category, presets] of Object.entries(PRESETS_DATA)) {
+                let catIcon = '💳';
+                if (category === '熊本熊卡') catIcon = '🐻';
+                else if (category === '吉鶴卡') catIcon = '🪿';
+                else if (category === '星展 eco 卡') catIcon = '🌱';
+
+                let html = `<div class="preset-category">${catIcon} ${category}</div><div class="preset-group">`;
+
+                html += presets.map(p => `
+                    <div class="preset-btn" onclick="addPreset('${category}', '${p.name}', ${p.limit}, '${p.period}', '${p.note}')">
+                        <div class="preset-icon"><i class="fas ${p.icon}"></i></div>
+                        <div class="preset-info">
+                            <h4>${p.name}</h4>
+                            <p>上限 $${p.limit.toLocaleString()} / ${p.period}</p>
+                        </div>
+                    </div>
+                `).join('');
+
+                html += `</div>`;
+                list.innerHTML += html;
+            }
+        }
+
+        function renderCards() {
+            const container = document.getElementById('cards-container');
+
+            if (cards.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-passport"></i>
+                        <p>還沒有紀錄喔！<br>點擊右下角 + 開始規劃你的日旅攻略</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Build all HTML string first to improve performance
+            let fullHtml = '';
+
+            cards.forEach((card, index) => {
+                const percent = (card.current / card.limit) * 100;
+                let colorVar = '--primary';
+                if (card.category === '吉鶴卡') colorVar = '--secondary';
+                if (card.category === '星展 eco 卡') colorVar = '--eco';
+
+                let statusText = `還可刷 $${(card.limit - card.current).toLocaleString()}`;
+
+                if (percent >= 100) {
+                    colorVar = '--success'; // 達標用綠色
+                    statusText = '🎉 已達標上限！';
+                } else if (percent >= 80) {
+                    colorVar = '--warning';
+                }
+
+                // 處理超刷顯示
+                const isOver = card.current > card.limit;
+                if (isOver) {
+                    colorVar = '--text-sub'; // 超刷變灰
+                    statusText = `超刷 $${(card.current - card.limit).toLocaleString()} (回饋率降低)`;
+                }
+
+                // Emoji Icon
+                let catIcon = '💳';
+                if (card.category === '熊本熊卡') catIcon = '🐻';
+                else if (card.category === '吉鶴卡') catIcon = '🪿';
+                else if (card.category === '星展 eco 卡') catIcon = '🌱';
+
+                const html = `
+                    <div class="card-target" data-type="${card.category || '其他'}">
+                        <div class="card-header">
+                            <div class="card-title-group">
+                                <div class="card-type-label">
+                                    ${catIcon}
+                                    ${card.category || '其他'} 
+                                    <span class="period-tag" style="margin-left:4px;">${card.period}</span>
+                                </div>
+                                <div class="card-title">${card.name}</div>
+                            </div>
+                            <div class="delete-btn" onclick="deleteCard(${index})">
+                                <i class="fas fa-trash-alt"></i>
+                            </div>
+                        </div>
+
+                        <div class="current-spend"><span class="currency">$</span>${parseInt(card.current).toLocaleString()}</div>
+
+                        <div class="progress-section">
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" style="width: ${Math.min(percent, 100)}%; background-color: var(${colorVar});"></div>
+                            </div>
+                            <div class="stats-row">
+                                <span style="color:var(${colorVar})">${Math.min(percent, 100).toFixed(1)}%</span>
+                                <span style="font-size:13px; color:#6B7280;">${statusText}</span>
+                            </div>
+                        </div>
+
+                        ${card.note ? `
+                        <div class="advisor-note">
+                            <strong><i class="fas fa-lightbulb" style="color:#F59E0B"></i> 攻略筆記：</strong>
+                            ${card.note}
+                        </div>
+                        ` : ''}
+
+                        <div class="action-row">
+                            <input type="number" id="amount-${index}" class="amount-input" placeholder="輸入金額" inputmode="numeric" onkeydown="if(event.key==='Enter'){updateCard(${index}, 1); this.blur();}">
+                            <button class="btn btn-add" onclick="updateCard(${index}, 1)">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <button class="btn btn-sub" onclick="updateCard(${index}, -1)">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                fullHtml += html;
+            });
+
+            container.innerHTML = fullHtml;
+        }
+
+        function addPreset(category, name, limit, period, note) {
+            cards.push({
+                category,
+                name,
+                limit,
+                period,
+                note,
+                current: 0,
+                id: Date.now()
+            });
+            saveCards();
+            closeAddModal();
+        }
+
+        function addCustomCard() {
+            const category = document.getElementById('input-category').value;
+            const name = document.getElementById('input-name').value.trim();
+            const limit = parseInt(document.getElementById('input-limit').value);
+            const period = document.getElementById('input-period').value;
+            const note = document.getElementById('input-note').value.trim();
+
+            if (!name || isNaN(limit) || limit <= 0) {
+                alert('請輸入正確的名稱與上限金額');
+                return;
+            }
+
+            cards.push({
+                category,
+                name,
+                limit,
+                period,
+                note,
+                current: 0,
+                id: Date.now()
+            });
+
+            saveCards();
+            closeAddModal();
+
+            // Clear inputs
+            document.getElementById('input-name').value = '';
+            document.getElementById('input-limit').value = '';
+            document.getElementById('input-note').value = '';
+        }
+
+        function deleteCard(index) {
+            if (confirm('確定要刪除這個攻略目標嗎？')) {
+                cards.splice(index, 1);
+                saveCards();
+            }
+        }
+
+        function updateCard(index, multiplier) {
+            const input = document.getElementById(`amount-${index}`);
+            const val = Number(input.value); // Better than parseInt for safety
+
+            if (isNaN(val) || val <= 0) {
+                alert('請輸入有效金額');
+                return;
+            }
+
+            // Safety check for data integrity
+            if (typeof cards[index].current !== 'number') {
+                cards[index].current = parseFloat(cards[index].current) || 0;
+            }
+
+            // Update
+            cards[index].current += val * multiplier;
+            if (cards[index].current < 0) cards[index].current = 0;
+
+            saveCards(); // saveCards calls renderCards, which refreshes the input ID
+        }
+
+        // --- Settings / Backup Logic ---
+        function openSettingsModal() {
+            document.getElementById('settings-modal').style.display = 'flex';
+            initSettingsUI(); // Load API Key
+            // Populate export area
+            const data = JSON.stringify(cards);
+            document.getElementById('export-area').value = data;
+        }
+
+        function closeSettingsModal() {
+            document.getElementById('settings-modal').style.display = 'none';
+        }
+
+        function copyExportData() {
+            const copyText = document.getElementById("export-area");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999); // For mobile devices
+
+            // Try modern clipboard API first
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(copyText.value).then(() => {
+                    alert("代碼已複製！請保存到安全的地方。");
+                });
+            } else {
+                // Fallback
+                document.execCommand("copy");
+                alert("代碼已複製！請保存到安全的地方。");
+            }
+        }
+
+        function importData() {
+            const input = document.getElementById('import-input').value.trim();
+            if (!input) return alert("請貼上備份代碼");
+
+            try {
+                const data = JSON.parse(input);
+                if (Array.isArray(data)) {
+                    if (confirm("確定要載入備份嗎？這將會覆蓋目前的資料！")) {
+                        cards = data;
+                        saveCards();
+                        alert("資料還原成功！");
+                        closeSettingsModal();
+                        document.getElementById('import-input').value = '';
+                    }
+                } else {
+                    alert("格式錯誤：代碼無效");
+                }
+            } catch (e) {
+                alert("格式錯誤：請檢查代碼是否完整");
+            }
+        }
+
+        function clearAllData() {
+            if (confirm("⚠️ 警告：確定要清除所有資料嗎？此動作無法復原！")) {
+                cards = [];
+                saveCards();
+                closeSettingsModal();
+            }
+        }
+
+        // --- Gemini AI Logic ---
+
+        async function askGemini() {
+            const input = document.getElementById('ai-input');
+            const responseArea = document.getElementById('ai-response-area');
+            const query = input.value.trim();
+
+            if (!query) return;
+
+            // 1. Show User Message
+            responseArea.innerHTML += `<div class="ai-message user">${query}</div>`;
+            input.value = '';
+
+            // 2. Show Loading
+            const loadingId = 'loading-' + Date.now();
+            responseArea.innerHTML += `<div class="ai-message bot" id="${loadingId}">思考中<span class="loading-dots"></span></div>`;
+            responseArea.scrollTop = responseArea.scrollHeight;
+
+            try {
+                // Construct Prompt
+                const systemPrompt = `你是一個專業的日旅信用卡理財顧問，專精於「玉山熊本熊卡」、「聯邦吉鶴卡」與「星展 eco 永續極簡卡」。
+                你的任務是根據用戶目前的「累積消費狀態」(State) 以及他們的「購物計畫」(Query)，提供精準的建議。
+                
+                2026年(上半年)卡片規則重點：
+                
+                【🐻 玉山熊本熊卡 (JCB)】
+                1. 日本指定通路(BicCamera, 松本清, Suica儲值等) 加碼6% (總共8.5%)。加碼部分上限500元台幣/月 (約刷8333台幣)。
+                2. 日本PayPay掃碼 (綁定Wallet) 加碼3.5% (總共5%)。加碼部分上限100元台幣/季 (約刷2857台幣)。注意是每季。
+                3. 一般消費 2.5% 無上限。
+
+                【🪿 聯邦吉鶴卡】
+                1. 日本 Apple Pay (QUICPay) 登錄加碼 1.5% (總共4%)。加碼上限 600元/月 (約刷 40,000台幣)。
+                2. 國內日系名店 (UNIQLO/DAISO等) 加碼 4% (總共5%)。加碼上限 500元/月 (約刷 12,500台幣)。
+                3. 日本熱門商店 (超商/藥妝/樂園) 加碼 3%。注意上限是「活動期間(半年) 600元」，代表半年只能刷 20,000元。
+                4. 日幣一般消費 2.5% 無上限。
+
+                【🌱 星展 eco 永續極簡卡】
+                1. 日本實體消費 (含 Apple Pay) 享 5% 回饋。
+                2. 加碼 4% 上限 600 點/期，代表刷 15,000 台幣達上限。
+                3. 超過後回歸 1% 無上限。
+                4. 僅限實體交易，網路/訂房不適用。
+
+                用戶目前狀態 JSON: ${JSON.stringify(cards)}
+                (注意: 'limit'是該類別的上限額度, 'current'是目前已用金額。單位皆為台幣 TWD)
+
+                請直接回答用戶問題。
+                1. 若用戶詢問刷哪張卡，請比較兩者回饋率與剩餘額度。
+                2. 若涉及日幣，請用匯率(約0.22)換算。
+                3. 優先推薦回饋率高且還有額度的卡片。
+                回答請簡短、友善。
+                `;
+
+                // Call API
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: query }] }],
+                        systemInstruction: { parts: [{ text: systemPrompt }] }
+                    })
+                });
+
+                if (!response.ok) throw new Error('API Error');
+
+                const data = await response.json();
+                const aiText = data.candidates[0].content.parts[0].text;
+
+                // 3. Update UI
+                const loadingEl = document.getElementById(loadingId);
+                loadingEl.innerText = aiText;
+
+            } catch (e) {
+                console.error(e);
+                document.getElementById(loadingId).innerText = "抱歉，AI 目前連線不穩，請稍後再試。";
+            }
+        }
+
+        // UI Helpers
+        function openAddModal() {
+            document.getElementById('add-modal').style.display = 'flex';
+        }
+        function closeAddModal() {
+            document.getElementById('add-modal').style.display = 'none';
+        }
+
+        function openAIModal() {
+            document.getElementById('ai-modal').style.display = 'flex';
+            document.getElementById('ai-input').focus();
+        }
+        function closeAIModal() {
+            document.getElementById('ai-modal').style.display = 'none';
+        }
+
+        // Close modal on outside click
+        document.getElementById('add-modal').addEventListener('click', function (e) {
+            if (e.target === this) closeAddModal();
+        });
+        document.getElementById('ai-modal').addEventListener('click', function (e) {
+            if (e.target === this) closeAIModal();
+        });
+        document.getElementById('settings-modal').addEventListener('click', function (e) {
+            if (e.target === this) closeSettingsModal();
+        });
+    </script>
+>>>>>>> 35505d92eda3e38170e39b884881a0476f1cf2b0
+</body>
+
+</html>

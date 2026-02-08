@@ -1,0 +1,27 @@
+[project]
+name = "cardway"
+version = "0.1.0"
+description = "AI Credit Card Optimization Advisor System"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "supabase",
+    "google-generativeai",
+    "playwright",
+    "html2text",
+    "python-dotenv",
+    "psycopg2-binary",
+    "pgvector"
+]
+
+[tool.uv]
+package = true
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["ai", "crawler", "db"]

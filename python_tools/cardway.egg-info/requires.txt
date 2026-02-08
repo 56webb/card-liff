@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+supabase
+google-generativeai
+playwright
+html2text
+python-dotenv
+psycopg2-binary
+pgvector

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CardWay RAG 管理後台 - Cyberpunk Terminal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Orbitron:wght@400;700&family=JetBrains+Mono&display=swap"
+    rel="stylesheet">
+</head>
+
+<body class="cyber-theme">
+  <div id="app">
+    <header class="header">
+      <div class="logo">
+        <span class="glitch" data-text="CARDWAY">CARDWAY</span>
+        <span class="sub-logo">RAG 管理系統 v1.0</span>
+      </div>
+      <div class="status-bar">
+        <div class="status-item">
+          <span class="label">連線狀態:</span>
+          <span id="api-status" class="value offline">未連線</span>
+        </div>
+        <div class="status-item">
+          <span class="label">儲存庫:</span>
+          <span id="store-id" class="value">尚未載入</span>
+        </div>
+        <button id="btn-settings" class="icon-btn" title="系統設定">⚙️</button>
+      </div>
+    </header>
+
+    <!-- 設定 Modal -->
+    <div id="settings-modal" class="modal-overlay hidden">
+      <div class="modal-content card">
+        <div class="card-header">系統參數設定</div>
+        <div class="form-group">
+          <label>GEMINI API 金鑰</label>
+          <input type="password" id="input-api-key" placeholder="貼上你的 API Key...">
+        </div>
+        <div class="form-group">
+          <label>知識庫 STORE ID</label>
+          <input type="text" id="input-store-name" placeholder="fileSearchStores/xxx...">
+        </div>
+        <div class="form-group">
+          <label>GAS WEBAPP 網址</label>
+          <input type="text" id="input-gas-url" placeholder="https://script.google.com/macros/s/xxx/exec">
+          <p style="font-size: 0.6rem; color: var(--text-dim); margin-top: 4px;">* 用於一鍵同步與清空功能 (需結尾為 /exec)</p>
+        </div>
+        <div class="modal-actions">
+          <button id="btn-save-settings" class="cyber-btn primary">儲存並連線</button>
+          <button id="btn-close-settings" class="cyber-btn">取消</button>
+        </div>
+      </div>
+    </div>
+
+    <main class="container">
+      <!-- 頂部資訊板 -->
+      <section class="dashboard-grid">
+        <div class="card stat-card">
+          <div class="card-header">文件總數</div>
+          <div class="card-value" id="doc-count">0</div>
+        </div>
+        <div class="card stat-card">
+          <div class="card-header">索引狀態</div>
+          <div class="card-value" id="index-status">N/A</div>
+        </div>
+        <div class="card action-card">
+          <button id="btn-sync" class="cyber-btn primary">
+            <span class="btn-icon">🔄</span> 雲端同步 (Drive)
+          </button>
+          <button id="btn-clear" class="cyber-btn danger">
+            <span class="btn-icon">🗑️</span> 清空儲存庫
+          </button>
+        </div>
+      </section>
+
+      <!-- 檔案清單 -->
+      <section class="doc-section card">
+        <div class="card-header">知識庫文件清單 (Documents)</div>
+        <div class="doc-table-wrapper">
+          <table class="cyber-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th width="40%" id="th-name" style="cursor: pointer; user-select: none;">
+                  標題 / 檔案名稱 <span id="icon-sort-name"></span>
+                </th>
+                <th width="25%" id="th-date" style="cursor: pointer; user-select: none;">
+                  上傳時間 <span id="icon-sort-date">▼</span>
+                </th>
+                <th width="20%">文件 ID</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="document-list">
+              <!-- JS 動態插入 -->
+              <tr>
+                <td colspan="4" class="empty-msg">尚未發現文件。請點擊上方「雲端同步」開始上傳。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 終端機 Log -->
+      <section class="log-section card">
+        <div class="card-header">系統日誌 (System Logs)</div>
+        <div id="terminal-log" class="terminal-box">
+          <div class="log-line">[系統] 正在啟動 RAG 管理介面...</div>
+          <div class="log-line">[系統] 準備就緒。</div>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script type="module" src="/main.js"></script>
+</body>
+
+</html>

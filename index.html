@@ -147,75 +147,122 @@
             font-weight: 500;
         }
 
-        /* Visual Credit Card Style */
+        /* Visual Credit Card Style - 新佈局 */
         .visual-card {
             background: linear-gradient(135deg, #475569 0%, #1e293b 100%);
             color: white;
-            padding: 20px;
-            border-radius: 16px;
-            margin-bottom: 12px;
+            padding: 16px;
+            border-radius: var(--radius);
             position: relative;
-            box-shadow: var(--shadow-md);
-            overflow: hidden;
+            box-shadow: var(--shadow);
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
-        /* Dynamic gradients for cards */
-        .visual-card[data-bank="013 國泰世華"] {
+        /* 銀行顏色 */
+        .visual-card[data-bank*="國泰"] {
             background: linear-gradient(135deg, #01a33d 0%, #008530 100%);
         }
 
-        .visual-card[data-bank="822 中國信託"] {
+        .visual-card[data-bank*="中信"] {
             background: linear-gradient(135deg, #009E96 0%, #006862 100%);
         }
 
-        .visual-card[data-bank="812 台新銀行"] {
+        .visual-card[data-bank*="台新"] {
             background: linear-gradient(135deg, #E60012 0%, #99000c 100%);
         }
 
-        .visual-card[data-bank="012 台北富邦"] {
+        .visual-card[data-bank*="富邦"] {
             background: linear-gradient(135deg, #0076CE 0%, #004b85 100%);
         }
 
-        .visual-card[data-bank="808 玉山銀行"] {
+        .visual-card[data-bank*="玉山"] {
             background: linear-gradient(135deg, #00A650 0%, #007036 100%);
+        }
+
+        .visual-card[data-bank*="永豐"] {
+            background: linear-gradient(135deg, #C41E3A 0%, #8B0000 100%);
+        }
+
+        .visual-card[data-bank*="星展"] {
+            background: linear-gradient(135deg, #1A1A1A 0%, #333333 100%);
+        }
+
+        .visual-card[data-bank*="匯豐"] {
+            background: linear-gradient(135deg, #DB0011 0%, #8B0000 100%);
+        }
+
+        .visual-card[data-bank*="彰化"] {
+            background: linear-gradient(135deg, #0047AB 0%, #002366 100%);
         }
 
         .vc-top {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 25px;
         }
 
-        .vc-chip {
-            width: 36px;
+        .vc-bank-name {
+            font-size: 11px;
+            font-weight: 600;
+            opacity: 0.9;
+            letter-spacing: 0.5px;
+        }
+
+        .vc-settings {
+            width: 24px;
             height: 24px;
             background: rgba(255, 255, 255, 0.2);
-            border-radius: 6px;
-            position: relative;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.15s;
         }
 
-        .vc-chip::after {
-            content: '';
-            position: absolute;
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            width: 100%;
-            height: 50%;
-            top: 25%;
-            border-left: 0;
-            border-right: 0;
+        .vc-settings:hover {
+            background: rgba(255, 255, 255, 0.35);
+        }
+
+        .vc-settings i {
+            font-size: 12px;
+        }
+
+        .vc-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
         }
 
         .vc-name {
-            font-size: 18px;
+            font-size: 14px;
             font-weight: 600;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            margin-bottom: 2px;
+            line-height: 1.2;
         }
 
-        .vc-bank {
-            font-size: 12px;
-            opacity: 0.8;
-            letter-spacing: 1px;
+        .vc-feature {
+            font-size: 10px;
+            opacity: 0.7;
+            line-height: 1.3;
+        }
+
+        .vc-bottom {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 8px;
+        }
+
+        .vc-org {
+            font-size: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 500;
         }
 
         /* 搜尋框 - 極簡 */
@@ -1298,7 +1345,7 @@
 
                 const existingCard = myWallet.find(c => c.name === cardName && c.bank === bank);
                 const isSelected = !!existingCard;
-                const currentOrg = existingCard?.org || 'visa';
+                const currentOrg = existingCard?.org || 'na';
 
                 // Card info row
                 const infoRow = document.createElement('div');
@@ -1313,7 +1360,7 @@
                 const btn = document.createElement('button');
                 btn.className = `action-btn ${isSelected ? 'remove-icon' : 'add-icon'}`;
                 btn.innerHTML = isSelected ? '<i class="fas fa-minus"></i>' : '<i class="fas fa-plus"></i>';
-                btn.onclick = () => toggleCard(bank, cardName, 'visa');
+                btn.onclick = () => toggleCard(bank, cardName, 'na');
 
                 infoRow.appendChild(btn);
                 item.appendChild(infoRow);
@@ -1323,10 +1370,10 @@
                     const orgSelector = document.createElement('div');
                     orgSelector.className = 'card-org-selector';
 
-                    ['visa', 'mastercard', 'jcb'].forEach(org => {
+                    ['na', 'visa', 'mastercard', 'jcb'].forEach(org => {
                         const orgBtn = document.createElement('button');
                         orgBtn.className = `org-btn ${currentOrg === org ? 'active' : ''}`;
-                        orgBtn.innerText = org.toUpperCase();
+                        orgBtn.innerText = org === 'na' ? 'N/A' : org.toUpperCase();
                         orgBtn.onclick = (e) => {
                             e.stopPropagation();
                             updateCardOrg(bank, cardName, org);
@@ -1350,7 +1397,7 @@
             }
         }
 
-        function toggleCard(bank, name, org = 'visa') {
+        function toggleCard(bank, name, org = 'na') {
             const idx = myWallet.findIndex(c => c.name === name);
             if (idx > -1) {
                 myWallet.splice(idx, 1);
@@ -1435,38 +1482,100 @@
 
             if (myWallet.length === 0) {
                 preview.innerHTML = `
-                <div style="text-align:center; padding:30px; border:2px dashed #E5E7EB; border-radius:16px; color:#9CA3AF;">
+                <div style="text-align:center; padding:30px; border:2px dashed var(--border); border-radius:var(--radius); color:var(--text-secondary);">
                     <i class="fas fa-wallet" style="font-size:24px; margin-bottom:8px;"></i>
                     <p style="font-size:13px;">錢包是空的</p>
                 </div>`;
                 return;
             }
 
+            // Sort by bank code
+            const sortedWallet = [...myWallet].sort((a, b) => {
+                const codeA = a.bank.split(' ')[0] || '999';
+                const codeB = b.bank.split(' ')[0] || '999';
+                return codeA.localeCompare(codeB);
+            });
+
             // Create two-column grid container
             const gridContainer = document.createElement('div');
             gridContainer.className = 'wallet-grid';
 
-            myWallet.forEach(card => {
+            sortedWallet.forEach(card => {
                 const div = document.createElement('div');
                 div.className = 'visual-card';
                 div.setAttribute('data-bank', card.bank);
 
-                const cardOrg = card.org || 'visa';
-                const orgIcon = cardOrg === 'mastercard' ? 'fa-cc-mastercard' :
-                    cardOrg === 'jcb' ? 'fa-cc-jcb' : 'fa-cc-visa';
+                const cardOrg = card.org || 'na';
+                const orgLabel = cardOrg === 'na' ? 'N/A' : cardOrg.toUpperCase();
+                const bankName = card.bank.split(' ')[1] || card.bank;
 
                 div.innerHTML = `
                 <div class="vc-top">
-                    <div class="vc-chip"></div>
-                    <i class="fab ${orgIcon}" style="font-size:24px; opacity:0.8;"></i>
+                    <div class="vc-bank-name">${bankName}</div>
+                    <div class="vc-settings" onclick="showCardSettings('${card.bank}', '${card.name}')">
+                        <i class="fas fa-cog"></i>
+                    </div>
                 </div>
-                <div class="vc-name">${card.name}</div>
-                <div class="vc-bank">${card.bank.split(" ")[1] || card.bank}</div>
+                <div class="vc-content">
+                    <div class="vc-name">${card.name}</div>
+                </div>
+                <div class="vc-bottom">
+                    <div class="vc-org">${orgLabel}</div>
+                </div>
               `;
                 gridContainer.appendChild(div);
             });
 
             preview.appendChild(gridContainer);
+        }
+
+        // Card settings modal
+        function showCardSettings(bank, cardName) {
+            const card = myWallet.find(c => c.name === cardName && c.bank === bank);
+            if (!card) return;
+
+            const currentOrg = card.org || 'na';
+            const modal = document.getElementById('custom-modal');
+
+            modal.innerHTML = `
+            <div class="modal-content">
+                <div style="font-size:18px; font-weight:600; margin-bottom:16px;">${cardName}</div>
+                <div style="font-size:13px; color:var(--text-secondary); margin-bottom:20px;">${bank}</div>
+                
+                <div style="margin-bottom:20px;">
+                    <div style="font-size:12px; color:var(--text-secondary); margin-bottom:8px;">發卡組織</div>
+                    <div style="display:flex; gap:6px; justify-content:center;">
+                        ${['na', 'visa', 'mastercard', 'jcb'].map(org => `
+                            <button class="org-btn ${currentOrg === org ? 'active' : ''}" 
+                                    onclick="updateCardOrgFromModal('${bank}', '${cardName}', '${org}')">
+                                ${org === 'na' ? 'N/A' : org.toUpperCase()}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+                
+                <div style="display:flex; gap:8px;">
+                    <button onclick="closeModal()" class="primary-btn" style="flex:1; background:var(--surface); color:var(--text-primary);">取消</button>
+                    <button onclick="deleteCardFromModal('${bank}', '${cardName}')" class="primary-btn" style="flex:1; background:#FF3B30;">刪除卡片</button>
+                </div>
+            </div>
+            `;
+            modal.style.display = 'flex';
+        }
+
+        function updateCardOrgFromModal(bank, cardName, org) {
+            const card = myWallet.find(c => c.name === cardName && c.bank === bank);
+            if (card) {
+                card.org = org;
+                showCardSettings(bank, cardName); // Refresh modal
+                showToast(`已設定為 ${org === 'na' ? 'N/A' : org.toUpperCase()}`);
+            }
+        }
+
+        function deleteCardFromModal(bank, cardName) {
+            toggleCard(bank, cardName);
+            closeModal();
+            updateHomeStats();
         }
 
         function finishSave(btn, oldText) {

@@ -18,19 +18,19 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            /* 日系清新藍 Glassmorphism 主題 */
-            --primary: #00bcd4;
-            --primary-dark: #0097a7;
-            --primary-light: #b2ebf2;
-            --bg-gradient-start: #e0f7fa;
-            --bg-gradient-end: #80deea;
-            --surface: rgba(255, 255, 255, 0.25);
-            --surface-solid: rgba(255, 255, 255, 0.85);
-            --text-main: #1a365d;
-            --text-sub: #4a6fa5;
-            --border: rgba(255, 255, 255, 0.4);
-            --shadow-glass: 0 8px 32px rgba(0, 188, 212, 0.15);
-            --shadow-glow: 0 0 20px rgba(0, 188, 212, 0.3);
+            /* 賈伯斯式極簡設計 */
+            --primary: #0071E3;
+            --primary-hover: #0077ED;
+            --success: #34C759;
+            --bg: #FFFFFF;
+            --surface: #F5F5F7;
+            --text-primary: #1D1D1F;
+            --text-secondary: #86868B;
+            --border: #D2D2D7;
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.12);
+            --radius: 12px;
+            --radius-lg: 16px;
         }
 
         * {
@@ -41,55 +41,14 @@
         }
 
         body {
-            font-family: 'Outfit', 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
-            background-attachment: fixed;
-            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Noto Sans TC', sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
             overflow-x: hidden;
             scroll-behavior: smooth;
             min-height: 100vh;
-            position: relative;
-        }
-
-        /* 裝飾性浮動圓球 */
-        body::before,
-        body::after {
-            content: '';
-            position: fixed;
-            border-radius: 50%;
-            filter: blur(60px);
-            opacity: 0.4;
-            z-index: -1;
-            animation: float 8s ease-in-out infinite;
-        }
-
-        body::before {
-            width: 300px;
-            height: 300px;
-            background: linear-gradient(135deg, #4dd0e1, #00acc1);
-            top: -100px;
-            right: -100px;
-        }
-
-        body::after {
-            width: 250px;
-            height: 250px;
-            background: linear-gradient(135deg, #80deea, #26c6da);
-            bottom: 20%;
-            left: -80px;
-            animation-delay: -4s;
-        }
-
-        @keyframes float {
-
-            0%,
-            100% {
-                transform: translateY(0) rotate(0deg);
-            }
-
-            50% {
-                transform: translateY(-20px) rotate(5deg);
-            }
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
         }
 
         /* Layout */
@@ -104,26 +63,19 @@
             flex-direction: column;
         }
 
-        /* Glassmorphism Card Style */
+        /* 極簡卡片 */
         .ui-card {
-            background: var(--surface);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-radius: 24px;
-            padding: 24px;
-            margin-bottom: 20px;
-            box-shadow: var(--shadow-glass);
-            border: 1px solid var(--border);
-            transition: transform 0.3s, box-shadow 0.3s;
+            background: var(--bg);
+            border-radius: var(--radius-lg);
+            padding: 28px 24px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow);
+            border: none;
+            transition: box-shadow 0.2s ease;
         }
 
         .ui-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-glow);
-        }
-
-        .ui-card:active {
-            transform: scale(0.98);
+            box-shadow: var(--shadow-hover);
         }
 
         /* Views Transition */
@@ -151,57 +103,47 @@
             }
         }
 
-        /* Typography */
+        /* 標題 - 大而清晰 */
         h1 {
-            font-size: 26px;
+            font-size: 34px;
             font-weight: 700;
-            margin-bottom: 6px;
-            color: var(--text-main);
+            margin-bottom: 8px;
+            color: var(--text-primary);
             letter-spacing: -0.5px;
         }
 
         p.subtitle {
-            color: var(--text-sub);
-            font-size: 14px;
-            margin-bottom: 24px;
-            line-height: 1.6;
+            color: var(--text-secondary);
+            font-size: 15px;
+            margin-bottom: 32px;
+            line-height: 1.5;
         }
 
-        /* Home Stats - Modern Grid */
+        /* 統計區塊 - 簡潔 */
         .stat-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 16px;
-            margin-bottom: 24px;
+            margin-bottom: 32px;
         }
 
         .stat-item {
             background: var(--surface);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            padding: 20px 16px;
-            border-radius: 20px;
+            padding: 24px 16px;
+            border-radius: var(--radius);
             text-align: center;
-            border: 1px solid var(--border);
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-
-        .stat-item:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-glow);
         }
 
         .stat-val {
-            font-size: 32px;
+            font-size: 36px;
             font-weight: 700;
-            color: var(--primary);
-            text-shadow: 0 2px 8px rgba(0, 188, 212, 0.3);
+            color: var(--text-primary);
         }
 
         .stat-lbl {
             font-size: 13px;
-            color: var(--text-sub);
-            margin-top: 6px;
+            color: var(--text-secondary);
+            margin-top: 4px;
             font-weight: 500;
         }
 
@@ -276,113 +218,103 @@
             letter-spacing: 1px;
         }
 
-        /* Search Bar - Glassmorphism */
+        /* 搜尋框 - 極簡 */
         .search-container {
-            margin-bottom: 20px;
+            margin-bottom: 24px;
             position: relative;
         }
 
         .search-input {
             width: 100%;
-            background: var(--surface-solid);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 2px solid var(--border);
-            box-shadow: var(--shadow-glass);
-            border-radius: 16px;
-            padding: 16px 16px 16px 48px;
-            color: var(--text-main);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px 14px 14px 44px;
+            color: var(--text-primary);
             font-size: 15px;
             outline: none;
-            transition: 0.3s;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
 
         .search-input:focus {
             border-color: var(--primary);
-            box-shadow: var(--shadow-glow);
+            box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1);
         }
 
         .search-input::placeholder {
-            color: var(--text-sub);
+            color: var(--text-secondary);
         }
 
         .search-icon {
             position: absolute;
-            left: 18px;
+            left: 14px;
             top: 50%;
             transform: translateY(-50%);
-            color: var(--primary);
-            font-size: 16px;
+            color: var(--text-secondary);
+            font-size: 15px;
         }
 
-        /* Bank Pills - Glassmorphism */
+        /* 銀行標籤 - 極簡 */
         .bank-grid {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 8px;
             margin-bottom: 24px;
             max-height: 200px;
             overflow-y: auto;
-            padding: 4px;
+            padding: 4px 0;
         }
 
         .bank-pill {
-            padding: 10px 18px;
-            border-radius: 50px;
-            background: var(--surface-solid);
-            backdrop-filter: blur(8px);
-            color: var(--text-sub);
-            font-size: 13px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: var(--surface);
+            color: var(--text-secondary);
+            font-size: 14px;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.3s;
-            border: 1px solid var(--border);
+            transition: all 0.15s ease;
+            border: none;
         }
 
         .bank-pill:hover {
-            background: var(--primary-light);
-            color: var(--primary-dark);
-            transform: translateY(-2px);
+            background: #E8E8ED;
         }
 
         .bank-pill.active {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            background: var(--primary);
             color: #fff;
-            box-shadow: var(--shadow-glow);
-            border-color: transparent;
         }
 
-        /* Selection List */
+        /* 選擇列表 - 極簡 */
         .selection-list {
             display: grid;
-            gap: 12px;
+            gap: 8px;
         }
 
         .selection-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px 20px;
-            border-radius: 16px;
+            padding: 14px 16px;
+            border-radius: var(--radius);
             background: var(--surface);
-            box-shadow: var(--shadow-sm);
-            border: 1px solid var(--border);
         }
 
         .action-btn {
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             border: none;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: 0.2s;
+            transition: all 0.15s ease;
         }
 
         .add-icon {
-            background: #F3F4F6;
+            background: rgba(0, 113, 227, 0.1);
             color: var(--primary);
         }
 
@@ -392,8 +324,8 @@
         }
 
         .remove-icon {
-            background: #FEE2E2;
-            color: #EF4444;
+            background: rgba(255, 59, 48, 0.1);
+            color: #FF3B30;
         }
 
         /* Payment Mapping */
@@ -444,42 +376,36 @@
         }
 
         .mini-chip.selected {
-            background: linear-gradient(135deg, var(--primary-light), #e0f7fa);
+            background: rgba(0, 113, 227, 0.1);
             border-color: var(--primary);
-            color: var(--primary-dark);
+            color: var(--primary);
             font-weight: 600;
-            box-shadow: 0 2px 8px rgba(0, 188, 212, 0.2);
         }
 
-        /* Navigation Bar - Glassmorphism */
+        /* 導航列 - 極簡 */
         .nav-bar {
             position: fixed;
-            bottom: 24px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: calc(100% - 48px);
-            max-width: 450px;
-            height: 72px;
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border-radius: 28px;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 84px;
+            background: var(--bg);
+            border-top: 1px solid var(--border);
             display: flex;
             justify-content: space-around;
-            align-items: center;
+            align-items: flex-start;
+            padding-top: 12px;
             z-index: 100;
-            box-shadow: 0 8px 32px rgba(0, 188, 212, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.6);
         }
 
         .nav-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            color: var(--text-sub);
-            transition: all 0.3s;
+            color: var(--text-secondary);
+            transition: color 0.15s ease;
             cursor: pointer;
-            padding: 8px 16px;
+            padding: 4px 16px;
         }
 
         .nav-item:hover {
@@ -488,79 +414,55 @@
 
         .nav-item.active {
             color: var(--primary);
-            transform: translateY(-3px);
-        }
-
-        .nav-item.active i {
-            filter: drop-shadow(0 4px 8px rgba(0, 188, 212, 0.4));
         }
 
         .nav-item i {
-            font-size: 24px;
+            font-size: 22px;
             margin-bottom: 4px;
         }
 
         .nav-item span {
             font-size: 10px;
-            font-weight: 600;
+            font-weight: 500;
         }
 
-        /* Buttons - Glassmorphism */
+        /* 按鈕 - 極簡 */
         .primary-btn {
             width: 100%;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            background: var(--primary);
             color: #fff;
             border: none;
-            padding: 18px;
-            border-radius: 20px;
-            font-size: 16px;
+            padding: 16px 24px;
+            border-radius: var(--radius);
+            font-size: 17px;
             font-weight: 600;
             cursor: pointer;
-            box-shadow: 0 8px 24px rgba(0, 188, 212, 0.35);
-            transition: all 0.3s;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .primary-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-            transition: left 0.5s;
-        }
-
-        .primary-btn:hover::before {
-            left: 100%;
+            transition: background 0.15s ease;
         }
 
         .primary-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 32px rgba(0, 188, 212, 0.45);
+            background: var(--primary-hover);
         }
 
         .primary-btn:active {
             transform: scale(0.98);
         }
 
-        /* Toast - Glassmorphism */
+        /* Toast - 極簡 */
         .toast {
             position: fixed;
             top: 24px;
             left: 50%;
             transform: translateX(-50%) translateY(-100px);
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            background: var(--text-primary);
             color: #fff;
-            padding: 14px 28px;
-            border-radius: 50px;
+            padding: 12px 20px;
+            border-radius: var(--radius);
             font-size: 14px;
             font-weight: 500;
             z-index: 200;
-            box-shadow: 0 8px 24px rgba(0, 188, 212, 0.35);
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: var(--shadow-hover);
+            transition: transform 0.3s ease;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -570,16 +472,14 @@
             transform: translateX(-50%) translateY(0);
         }
 
-        /* Modal - Glassmorphism */
+        /* Modal - 極簡 */
         #custom-modal {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 188, 212, 0.1);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
+            background: rgba(0, 0, 0, 0.4);
             display: none;
             justify-content: center;
             align-items: center;
@@ -587,16 +487,13 @@
         }
 
         .modal-content {
-            background: var(--surface-solid);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            padding: 32px 24px;
-            border-radius: 28px;
+            background: var(--bg);
+            padding: 28px 24px;
+            border-radius: var(--radius-lg);
             width: 85%;
             max-width: 320px;
             text-align: center;
-            box-shadow: var(--shadow-glass);
-            border: 1px solid var(--border);
+            box-shadow: var(--shadow-hover);
         }
 
         /* Form Elements for Settings */

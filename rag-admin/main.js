@@ -512,6 +512,27 @@ async function askQuestion() {
         if (data.status === 'ok') {
             addLog('✅ 收到回答', 'success');
 
+            // ---除錯資訊開始---
+            if (data.sources && data.sources.length > 0) {
+                const firstUri = data.sources[0].uri;
+                addLog(`🔍 Debug Source: ...${firstUri.slice(-30)}`, 'info');
+
+                const mapKeys = Object.keys(filenameMap || {});
+                if (mapKeys.length > 0) {
+                    addLog(`🔍 Debug MapKey: ...${mapKeys[0].slice(-30)}`, 'info');
+                } else {
+                    addLog(`⚠️ Debug: 前端對照表為空`, 'warning');
+                }
+            } else {
+                addLog('ℹ️ 此回答未引用任何文件來源', 'info');
+                // 即使沒有來源，也印出 Map Key 確認對照表是否載入成功
+                const mapKeys = Object.keys(filenameMap || {});
+                if (mapKeys.length > 0) {
+                    addLog(`🔍 Debug MapKey (已載入): ...${mapKeys[0].slice(-30)}`, 'info');
+                }
+            }
+            // ---除錯資訊結束---
+
             // 更新本地對照表
             if (data.nameMap) {
                 filenameMap = { ...filenameMap, ...data.nameMap };

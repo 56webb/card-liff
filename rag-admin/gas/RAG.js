@@ -60,33 +60,34 @@ function syncDriveToGemini() {
   // 建立目前 Store 內有效的文件名稱集合 (用於快速查找)
   const validDocNames = new Set(existingDocs.map(doc => doc.name));
 
-  // 清理對照表：移除不在 Store 內的無效項目
-  let isMapChanged = false;
-  const originalSize = Object.keys(nameMap).length;
-  for (const docName in nameMap) {
-    if (!validDocNames.has(docName)) {
-      delete nameMap[docName];
-      isMapChanged = true;
+  if (existingDocs.length > 0) {
+    Logger.log(`🔍 Debug: Store ID 範例: ${existingDocs[0].name}`);
+    const mapKeys = Object.keys(nameMap);
+    if (mapKeys.length > 0) {
+      Logger.log(`🔍 Debug: Map Key 範例:   ${mapKeys[0]}`);
     }
   }
 
-  if (isMapChanged) {
-    const newSize = Object.keys(nameMap).length;
-    Logger.log(`🧹 已清理對照表: 移除 ${originalSize - newSize} 筆無效資料`);
-    saveFilenameMap(nameMap);
-  }
-
-  // 建立已存在名稱的 Set (從 API 的 displayName 與有效期內的對照表中文名)
+  // 暫時移除自動清理邏輯，以對照表為準，避免 API 資料不完整導致誤刪
   const existingNames = new Set();
+
+  // 1. 從 API 回傳的 displayName
   existingDocs.forEach(doc => {
-    // API 回傳的 displayName
     if (doc.displayName) {
       existingNames.add(doc.displayName);
-      Logger.log(`   已存在: ${doc.displayName}`);
+      Logger.log(`   [API] 已存在: ${doc.displayName}`);
     }
   });
-  // 也把對照表內的中文名加進去 (以防 API 沒回傳 displayName，但確保只加有效的)
-  Object.values(nameMap).forEach(name => existingNames.add(name));
+
+  // 2. 從 nameMap 補足 (最重要的防線)
+  Object.values(nameMap).forEach(name => {
+    if (!existingNames.has(name)) {
+      existingNames.add(name);
+      Logger.log(`   [Map] 已存在: ${name}`);
+    }
+  });
+
+  Logger.log(`🛡️ 防重複機制: 已知 ${existingNames.size} 個檔案名稱`);
 
   const folder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
   const files = folder.getFiles();
@@ -181,6 +182,12 @@ function uploadBlobToGemini(blob, displayName, storeName, apiKey) {
     }
 
     const fileData = JSON.parse(resText);
+    if (fileData.file && fileData.file.displayName) {
+      Logger.log(`   ✅ 檔案上傳成功: ${fileData.file.displayName} (URI: ${fileData.file.uri})`);
+    } else {
+      Logger.log(`   ⚠️ 檔案上傳成功，但 displayName 未預期回傳。完整回應: ${resText.substring(0, 200)}`);
+    }
+
     if (!fileData.file || !fileData.file.name) return null;
     const fileResourceName = fileData.file.name;
 
@@ -193,13 +200,41 @@ function uploadBlobToGemini(blob, displayName, storeName, apiKey) {
       muteHttpExceptions: true
     });
 
-    if (linkRes.getResponseCode() === 200) {
-      const linkData = JSON.parse(linkRes.getContentText());
-      return { docName: linkData.name || fileResourceName, displayName: displayName };
-    } else {
+    if (linkRes.getResponseCode() !== 200) {
       Logger.log(`   ❌ 導入 Store 失敗: ${linkRes.getContentText()}`);
       return null;
     }
+
+    const linkData = JSON.parse(linkRes.getContentText());
+    let finalDocName = linkData.name;
+
+    // 如果回傳是 Operation，等待完成以取得真實 Document Name
+    if (finalDocName && finalDocName.includes('/operations/')) {
+      Logger.log(`   ⏳ 等待導入作業完成: ${finalDocName.split('/').pop()} ...`);
+      for (let i = 0; i < 20; i++) {
+        Utilities.sleep(1000);
+        try {
+          const opUrl = `https://generativelanguage.googleapis.com/v1beta/${finalDocName}?key=${apiKey}`;
+          const opRes = UrlFetchApp.fetch(opUrl, { muteHttpExceptions: true });
+          const opData = JSON.parse(opRes.getContentText());
+
+          if (opData.done) {
+            if (opData.response && opData.response.name) {
+              finalDocName = opData.response.name;
+              Logger.log(`   ✅ 導入完成，取得文件 ID: ${finalDocName.split('/').pop()}`);
+            } else if (opData.error) {
+              Logger.log(`   ❌ 導入作業失敗: ${JSON.stringify(opData.error)}`);
+              return null; // 作業失敗，視為上傳失敗
+            }
+            break; // 完成或失敗都跳出迴圈
+          }
+        } catch (e) {
+          Logger.log(`   ⚠️ 檢查作業狀態失敗: ${e}`);
+        }
+      }
+    }
+
+    return { docName: finalDocName || fileResourceName, displayName: displayName };
   } catch (e) {
     Logger.log(`   ❌ 程式執行異常: ${e.toString()}`);
     return null;
@@ -397,6 +432,16 @@ function askRAG(question, storeName, apiKey, model) {
 
       // 解析引用來源 (Grounding Metadata)
       const metadata = data.candidates[0].groundingMetadata;
+      if (metadata) {
+        if (metadata.groundingChunks && metadata.groundingChunks.length > 0) {
+          Logger.log(`📚 RAG 回應包含 ${metadata.groundingChunks.length} 個引用來源`);
+        } else {
+          Logger.log(`⚠️ RAG 回應包含 metadata 但無 chunks`);
+        }
+      } else {
+        Logger.log(`⚠️ RAG 回應未包含 groundingMetadata (模型未引用文件)`);
+      }
+
       if (metadata && metadata.groundingChunks) {
         sources = metadata.groundingChunks.map(chunk => {
           if (chunk.retrievedContext) {
@@ -420,5 +465,121 @@ function askRAG(question, storeName, apiKey, model) {
 
   } catch (e) {
     return { status: 'error', message: e.toString() };
+  }
+}
+
+
+/**
+ * 官方標準 RAG 檢索測試 (參照 Google File Search Quickstart 文件)
+ * 使用 gemini-2.5-flash 模型 + file_search 工具
+ */
+function testRAGRetrieval() {
+  const props = PropertiesService.getScriptProperties();
+  const apiKey = props.getProperty('GEMINI_API_KEY');
+  const storeName = props.getProperty('FILE_STORE_NAME');
+
+  if (!apiKey || !storeName) {
+    Logger.log("❌ 錯誤：未設定 API Key 或 Store Name");
+    return;
+  }
+
+  const testQuery = "這份文件主要在講什麼？";
+  Logger.log(`\n❓ 正在透過 File Search 測試問題: "${testQuery}"`);
+  Logger.log(`📦 使用 Store: ${storeName}`);
+
+  // 使用 gemini-2.5-flash 模型
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
+  // 依照官方文件建構 Payload
+  const payload = {
+    "contents": [{
+      "role": "user",
+      "parts": [{ "text": testQuery }]
+    }],
+    "tools": [{
+      "file_search": {
+        "file_search_store_names": [storeName]
+      }
+    }]
+  };
+
+  try {
+    Logger.log(`📡 送出請求...`);
+    const res = UrlFetchApp.fetch(url, {
+      method: "post",
+      contentType: "application/json",
+      payload: JSON.stringify(payload),
+      muteHttpExceptions: true
+    });
+
+    const responseCode = res.getResponseCode();
+    const responseText = res.getContentText();
+
+    Logger.log(`回應代碼: ${responseCode}`);
+
+    if (responseCode === 200) {
+      const result = JSON.parse(responseText);
+
+      // 解析回答
+      if (result.candidates && result.candidates[0] && result.candidates[0].content) {
+        const answer = result.candidates[0].content.parts[0].text;
+        Logger.log(`\n💡 RAG 回答:\n${answer}`);
+
+        // 檢查是否有來源引用 (Grounding Metadata)
+        const metadata = result.candidates[0].groundingMetadata;
+        if (metadata && metadata.groundingChunks) {
+          Logger.log(`\n📄 檢索到 ${metadata.groundingChunks.length} 個參考片段。`);
+          metadata.groundingChunks.forEach((chunk, i) => {
+            if (chunk.retrievedContext) {
+              Logger.log(`   [${i + 1}] ${chunk.retrievedContext.title || '無標題'}`);
+            }
+          });
+        }
+      } else {
+        Logger.log("⚠️ API 回應成功但結構不如預期，完整回應如下：");
+        Logger.log(responseText.substring(0, 1000));
+      }
+    } else {
+      Logger.log(`❌ 查詢失敗 (${responseCode}):`);
+      Logger.log(responseText.substring(0, 1500));
+    }
+  } catch (e) {
+    Logger.log(`❌ 發生錯誤: ${e.toString()}`);
+  }
+}
+
+/**
+ * 列出目前 Store 內所有文件 (含中文名稱對照)
+ */
+function listStoreDocuments() {
+  const props = PropertiesService.getScriptProperties();
+  const apiKey = props.getProperty('GEMINI_API_KEY');
+  const storeName = props.getProperty('FILE_STORE_NAME');
+
+  if (!storeName) {
+    Logger.log("❌ 錯誤：未設定 FILE_STORE_NAME");
+    return;
+  }
+
+  const nameMap = getFilenameMap();
+  const url = `https://generativelanguage.googleapis.com/v1beta/${storeName}/documents?key=${apiKey}`;
+
+  try {
+    const res = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+    const data = JSON.parse(res.getContentText());
+
+    if (data.documents && data.documents.length > 0) {
+      Logger.log(`📚 Store [${storeName}] 中有 ${data.documents.length} 份文件：`);
+      data.documents.forEach((doc, i) => {
+        const chineseName = nameMap[doc.name];
+        // 優先顯示中文，若無則顯示 API displayName，再無則顯示 ID
+        const finalShow = chineseName || doc.displayName || doc.name.split('/').pop();
+        Logger.log(`   [${i + 1}] ${finalShow}`);
+      });
+    } else {
+      Logger.log(`⚠️ Store [${storeName}] 是空的，尚無文件。`);
+    }
+  } catch (e) {
+    Logger.log(`❌ 發生錯誤: ${e.toString()}`);
   }
 }

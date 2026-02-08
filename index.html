@@ -637,6 +637,58 @@
             color: #fff;
             border-color: var(--primary);
         }
+
+        /* Skeleton Loading */
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+            border-radius: 4px;
+        }
+
+        @keyframes skeleton-loading {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        .skeleton-card {
+            height: 140px;
+            border-radius: var(--radius);
+            margin-bottom: 12px;
+            background: #f0f0f0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .skeleton-card::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transform: translateX(-100%);
+            animation: skeleton-shimmer 1.5s infinite;
+        }
+
+        @keyframes skeleton-shimmer {
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        .skeleton-text {
+            height: 16px;
+            width: 60%;
+            margin-bottom: 8px;
+            border-radius: 4px;
+        }
     </style>
 </head>
 
@@ -1161,25 +1213,49 @@
 
         // Logic
         async function loadSettings() {
-            if (IS_MOCK) {
-                // 本地預覽模式：從 localStorage 讀取
-                const saved = localStorage.getItem('cardway_data_v2');
-                if (saved) {
-                    const parsed = JSON.parse(saved);
-                    myWallet = Array.isArray(parsed.myWallet) ? parsed.myWallet : [];
-                    payMap = (typeof parsed.payMap === 'object') ? parsed.payMap : {};
+            // Optimistic UI: Try loading from cache first
+            const cached = localStorage.getItem('cardway_cache_v3');
+            let hasCache = false;
+
+            if (cached) {
+                try {
+                    const parsed = JSON.parse(cached);
+                    if (parsed.myWallet) {
+                        myWallet = parsed.myWallet;
+                        payMap = parsed.payMap || {};
+                        if (parsed.profile) Object.assign(userProfile, parsed.profile);
+
+                        console.log("Loaded from cache");
+                        updateCartCount();
+                        renderBanks(); // Ensure banks are rendered
+                        renderCards(selectedBank); // Render cached cards immediately
+                        updateHomeStats();
+                        hasCache = true;
+                    }
+                } catch (e) {
+                    console.error("Cache parse error", e);
                 }
-                updateCartCount();
-                return;
             }
 
+            if (!hasCache) {
+                // Show Skeleton if no cache
+                document.getElementById('wallet-preview').innerHTML = `
+                    <div class="wallet-grid">
+                        <div class="skeleton-card skeleton"></div>
+                        <div class="skeleton-card skeleton"></div>
+                    </div>
+                `;
+            }
+
+            if (IS_MOCK) return;
+
+            // Background fetch
             try {
                 const idToken = liff.getIDToken();
                 const decoded = liff.getDecodedIDToken();
-                const userId = decoded ? decoded.sub : null; // 直接取得 User ID
+                const userId = decoded ? decoded.sub : null;
 
-                // Fallback for Mock
-                if (!userId && !IS_MOCK) throw new Error("無 User ID");
+                if (!userId) throw new Error("無 User ID");
 
                 const res = await fetch(GAS_URL, {
                     method: 'POST',
@@ -1187,26 +1263,36 @@
                     body: JSON.stringify({
                         action: "get_settings",
                         idToken: idToken,
-                        userId: userId // 傳送 User ID
+                        userId: userId
                     })
                 });
                 const data = await res.json();
 
                 if (data.success === false) {
                     console.error("Server API Error", data.msg);
-                    // Optional: showModal("同步失敗: " + data.msg);
                 } else if (data.settings) {
                     myWallet = Array.isArray(data.settings.myWallet) ? data.settings.myWallet : [];
                     payMap = (typeof data.settings.payMap === 'object') ? data.settings.payMap : {};
                     myWallet = myWallet.filter(c => c && c.name);
-                    // 載入 profile
+
                     if (data.settings.profile) {
                         Object.assign(userProfile, data.settings.profile);
                     }
+
+                    // Update Cache
+                    localStorage.setItem('cardway_cache_v3', JSON.stringify({
+                        myWallet,
+                        payMap,
+                        profile: userProfile,
+                        timestamp: new Date().getTime()
+                    }));
+
+                    // Re-render with fresh data
+                    renderCards(selectedBank);
+                    updateHomeStats();
                 }
             } catch (e) {
                 console.error("Sync Error", e);
-                // showModal("讀取設定失敗: " + e.message, "⚠️");
             }
             updateCartCount();
         }
@@ -1264,6 +1350,13 @@
                 }
 
                 if (data.success || data.status === 'success') {
+                    // Update Cache on successful save
+                    localStorage.setItem('cardway_cache_v3', JSON.stringify({
+                        myWallet,
+                        payMap,
+                        profile: userProfile,
+                        timestamp: new Date().getTime()
+                    }));
                     finishSave(btn, oldText);
                 } else {
                     throw new Error(data.msg || "未知伺服器錯誤");
@@ -1624,6 +1717,24 @@
         }
 
         function deleteCardFromModal(bank, cardName) {
+            const modal = document.getElementById('custom-modal');
+            modal.innerHTML = `
+            <div class="modal-content" style="max-width:320px;">
+                <div style="font-size:48px; margin-bottom:16px;">⚠️</div>
+                <div style="font-size:18px; font-weight:600; margin-bottom:8px;">確認刪除</div>
+                <div style="font-size:14px; color:var(--text-secondary); margin-bottom:24px;">
+                    確定要刪除 <b>${cardName}</b> 嗎？
+                </div>
+                
+                <div style="display:flex; gap:8px;">
+                    <button onclick="showCardSettings('${bank}', '${cardName}')" class="primary-btn" style="flex:1; background:var(--surface); color:var(--text-primary);">取消</button>
+                    <button onclick="confirmDelete('${bank}', '${cardName}')" class="primary-btn" style="flex:1; background:#FF3B30;">刪除</button>
+                </div>
+            </div>
+            `;
+        }
+
+        function confirmDelete(bank, cardName) {
             toggleCard(bank, cardName);
             closeModal();
             updateHomeStats();

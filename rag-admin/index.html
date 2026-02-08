@@ -57,6 +57,22 @@
       </div>
     </div>
 
+    <!-- 編輯名稱 Modal -->
+    <div id="edit-name-modal" class="modal-overlay hidden">
+      <div class="modal-content card" style="max-width: 400px;">
+        <div class="card-header">✏️ 編輯文件名稱</div>
+        <div class="form-group">
+          <label>新的中文名稱</label>
+          <input type="text" id="input-new-name" placeholder="輸入新的顯示名稱...">
+        </div>
+        <input type="hidden" id="edit-doc-name">
+        <div class="modal-actions">
+          <button id="btn-save-name" class="cyber-btn primary">儲存</button>
+          <button id="btn-close-edit" class="cyber-btn">取消</button>
+        </div>
+      </div>
+    </div>
+
     <main class="container">
       <!-- 頂部資訊板 -->
       <section class="dashboard-grid">
@@ -104,6 +120,33 @@
             </tbody>
           </table>
         </div>
+      </section>
+
+      <!-- RAG 問答測試 -->
+      <section class="qa-section card">
+        <div class="card-header">🤖 RAG 問答測試</div>
+        <div class="qa-input-wrapper">
+          <select id="select-model" class="model-select">
+            <option value="gemini-2.5-flash">⚡ 2.5 Flash (快速)</option>
+            <option value="gemini-2.5-flash-lite">💰 2.5 Flash Lite (省錢)</option>
+            <option value="gemini-2.5-pro">🧠 2.5 Pro (智能)</option>
+            <option value="gemini-2.5-flash-preview">🔬 2.5 Flash Preview</option>
+            <option value="gemini-3-pro-preview">🚀 3.0 Pro Preview (最新)</option>
+          </select>
+          <input type="text" id="input-question" placeholder="輸入您的問題..." class="qa-input">
+          <button id="btn-ask" class="cyber-btn primary">送出</button>
+        </div>
+        <div id="qa-answer-box" class="qa-answer-box">
+          <div class="qa-placeholder">請輸入問題後點擊送出</div>
+        </div>
+        <div id="qa-sources" class="qa-sources"></div>
+
+        <!-- 對話歷史 -->
+        <div class="qa-history-header">
+          <span>📜 對話歷史</span>
+          <button id="btn-clear-history" class="history-clear-btn">清除</button>
+        </div>
+        <div id="qa-history" class="qa-history"></div>
       </section>
 
       <!-- 終端機 Log -->

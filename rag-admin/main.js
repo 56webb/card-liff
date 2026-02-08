@@ -29,6 +29,13 @@ const btnSettings = document.getElementById('btn-settings');
 const btnSaveSettings = document.getElementById('btn-save-settings');
 const btnCloseSettings = document.getElementById('btn-close-settings');
 
+// Edit Name Modal Elements
+const editModal = document.getElementById('edit-name-modal');
+const inputNewName = document.getElementById('input-new-name');
+const inputEditDocName = document.getElementById('edit-doc-name');
+const btnSaveName = document.getElementById('btn-save-name');
+const btnCloseEdit = document.getElementById('btn-close-edit');
+
 // --- 輔助函式：新增 Log ---
 function addLog(msg, type = 'info', isHtml = false) {
     const time = new Date().toLocaleTimeString([], { hour12: false });
@@ -264,7 +271,8 @@ function renderDocs(docs) {
                 <td style="font-size: 0.85rem; color: var(--text-base);">${doc.displayTime}</td>
                 <td style="font-size: 0.75rem; color: var(--text-dim)">${doc.shortId}</td>
                 <td>
-                    <button class="delete-btn" onclick="window.deleteDoc('${doc.name}')">刪除</button>
+                    <button class="edit-btn" onclick="window.editDocName('${doc.name}', '${doc.finalName.replace(/'/g, "\\'")}')">✏️</button>
+                    <button class="delete-btn" onclick="window.deleteDoc('${doc.name}')">🗑️</button>
                 </td>
             </tr>
         `;
@@ -330,6 +338,15 @@ async function callGasApi(action) {
             addLog(`${actionText} 回報: ${data.message}`, 'success');
             if (data.nameMap) filenameMap = data.nameMap;
 
+            // 若後端回傳新的 Store Name，更新本地設定
+            if (data.storeName && data.storeName !== FILE_STORE_NAME) {
+                FILE_STORE_NAME = data.storeName;
+                localStorage.setItem('FILE_STORE_NAME', FILE_STORE_NAME);
+                if (inputStoreName) inputStoreName.value = FILE_STORE_NAME;
+                addLog(`已同步 Store ID: ${FILE_STORE_NAME}`, 'warning');
+                updateUIStatus();
+            }
+
             if (action === 'clear') {
                 addLog('等待 API 釋放資源...', 'info');
                 setTimeout(async () => {
@@ -355,5 +372,220 @@ document.getElementById('btn-clear').onclick = () => {
         callGasApi('clear');
     }
 };
+
+// --- 編輯名稱功能 ---
+window.editDocName = (docName, currentName) => {
+    inputEditDocName.value = docName;
+    inputNewName.value = currentName;
+    editModal.classList.remove('hidden');
+    inputNewName.focus();
+};
+
+if (btnCloseEdit) btnCloseEdit.onclick = () => {
+    editModal.classList.add('hidden');
+};
+
+if (btnSaveName) btnSaveName.onclick = async () => {
+    const docName = inputEditDocName.value;
+    const newName = inputNewName.value.trim();
+
+    if (!newName) {
+        alert('名稱不能為空');
+        return;
+    }
+
+    if (!GAS_WEBAPP_URL) {
+        alert('請先設定 GAS WebApp URL');
+        return;
+    }
+
+    addLog(`正在更新名稱: ${newName}...`, 'warning');
+
+    const separator = GAS_WEBAPP_URL.includes('?') ? '&' : '?';
+    const url = `${GAS_WEBAPP_URL}${separator}action=updateName&docName=${encodeURIComponent(docName)}&newName=${encodeURIComponent(newName)}&_t=${Date.now()}`;
+
+    try {
+        const res = await fetch(url, { method: 'GET', mode: 'cors', cache: 'no-store' });
+        const data = await res.json();
+
+        if (data.status === 'ok') {
+            addLog(`✅ 名稱更新成功: ${newName}`, 'success');
+            filenameMap = data.nameMap;
+            // 更新 cachedDocs 中對應的 finalName
+            const doc = cachedDocs.find(d => d.name === docName);
+            if (doc) doc.finalName = newName;
+            applySort();
+            editModal.classList.add('hidden');
+        } else {
+            addLog(`❌ 更新失敗: ${data.message}`, 'error');
+        }
+    } catch (err) {
+        addLog(`❌ 連線失敗: ${err.message}`, 'error');
+    }
+};
+
+// =====================
+// RAG 問答功能
+// =====================
+const HISTORY_KEY = 'RAG_QA_HISTORY';
+const HISTORY_EXPIRY_DAYS = 7;
+
+const inputQuestion = document.getElementById('input-question');
+const btnAsk = document.getElementById('btn-ask');
+const qaAnswerBox = document.getElementById('qa-answer-box');
+const qaSources = document.getElementById('qa-sources');
+const qaHistory = document.getElementById('qa-history');
+const btnClearHistory = document.getElementById('btn-clear-history');
+const selectModel = document.getElementById('select-model');
+
+// 載入對話歷史
+function loadHistory() {
+    const raw = localStorage.getItem(HISTORY_KEY);
+    if (!raw) return [];
+    try {
+        const history = JSON.parse(raw);
+        // 過濾掉超過一週的項目
+        const now = Date.now();
+        const validHistory = history.filter(item => {
+            return (now - item.timestamp) < HISTORY_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
+        });
+        // 如果有過期項目被移除，更新 localStorage
+        if (validHistory.length !== history.length) {
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(validHistory));
+        }
+        return validHistory;
+    } catch (e) {
+        return [];
+    }
+}
+
+// 儲存對話歷史
+function saveHistory(history) {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+}
+
+// 渲染對話歷史
+function renderHistory() {
+    const history = loadHistory();
+    if (history.length === 0) {
+        qaHistory.innerHTML = '<div style="color: var(--text-dim); font-size: 0.85rem;">尚無對話記錄</div>';
+        return;
+    }
+    qaHistory.innerHTML = history.map(item => {
+        const time = new Date(item.timestamp).toLocaleString('zh-TW', { hour12: false });
+        const shortAnswer = item.answer.length > 200 ? item.answer.substring(0, 200) + '...' : item.answer;
+        return `
+            <div class="qa-history-item">
+                <div class="qa-history-q">Q: ${item.question}</div>
+                <div class="qa-history-a">${shortAnswer}</div>
+                <div class="qa-history-time">${time}</div>
+            </div>
+        `;
+    }).reverse().join('');
+}
+
+// 發送問題
+async function askQuestion() {
+    const question = inputQuestion.value.trim();
+    if (!question) {
+        alert('請輸入問題');
+        return;
+    }
+    if (!GAS_WEBAPP_URL) {
+        alert('請先設定 GAS WebApp URL');
+        return;
+    }
+
+    qaAnswerBox.innerHTML = '<div class="qa-loading">🔍 正在查詢知識庫...</div>';
+    qaSources.innerHTML = '';
+
+    const model = selectModel ? selectModel.value : 'gemini-2.5-flash';
+    addLog(`📤 發送問題 (模型: ${model}): ${question}`, 'warning');
+
+    const separator = GAS_WEBAPP_URL.includes('?') ? '&' : '?';
+    const url = `${GAS_WEBAPP_URL}${separator}action=askQuestion&question=${encodeURIComponent(question)}&model=${encodeURIComponent(model)}&_t=${Date.now()}`;
+
+    try {
+        const res = await fetch(url, { method: 'GET', mode: 'cors', cache: 'no-store' });
+        const data = await res.json();
+
+        if (data.status === 'ok') {
+            addLog('✅ 收到回答', 'success');
+
+            // 更新本地對照表
+            if (data.nameMap) {
+                filenameMap = { ...filenameMap, ...data.nameMap };
+                // 這裡可以選擇是否觸發畫面對照表的更新，目前先不動
+                addLog('🔄 已同步最新文件對照表', 'warning');
+            }
+
+            qaAnswerBox.innerHTML = data.answer || '(無回答內容)';
+
+            // 處理引用來源標題
+            let processedSources = [];
+            if (data.sources && data.sources.length > 0) {
+                processedSources = data.sources.map(s => {
+                    let finalTitle = s.title;
+                    const uri = s.uri;
+
+                    // 嘗試匹配中文名稱
+                    // 對照表格式: "fileSearchStores/.../documents/xxx": "中文檔名.pdf"
+                    // URI 格式可能包含 documents/xxx
+                    for (const [docPath, displayName] of Object.entries(filenameMap)) {
+                        const docId = docPath.split('/').pop();
+                        if (uri.includes(docId)) {
+                            finalTitle = displayName;
+                            break;
+                        }
+                    }
+                    return { ...s, title: finalTitle };
+                });
+
+                qaSources.innerHTML = '<strong>📚 引用來源:</strong><br>' +
+                    processedSources.map(s => `<div class="qa-source-item">• ${s.title}</div>`).join('');
+            } else {
+                qaSources.innerHTML = '';
+            }
+
+            // 儲存到歷史
+            const history = loadHistory();
+            history.push({
+                question: question,
+                answer: data.answer,
+                sources: processedSources, // 儲存處理過(含中文名)的來源
+                timestamp: Date.now()
+            });
+            saveHistory(history);
+            renderHistory();
+
+            // 清空輸入框
+            inputQuestion.value = '';
+        } else {
+            addLog(`❌ 問答失敗: ${data.message}`, 'error');
+            qaAnswerBox.innerHTML = `<div style="color: #ff3e3e;">錯誤: ${data.message}</div>`;
+        }
+    } catch (err) {
+        addLog(`❌ 連線失敗: ${err.message}`, 'error');
+        qaAnswerBox.innerHTML = `<div style="color: #ff3e3e;">連線失敗: ${err.message}</div>`;
+    }
+}
+
+// 綁定事件
+if (btnAsk) {
+    btnAsk.onclick = askQuestion;
+}
+
+if (btnClearHistory) {
+    btnClearHistory.onclick = () => {
+        if (confirm('確定要清除所有對話歷史嗎？')) {
+            localStorage.removeItem(HISTORY_KEY);
+            renderHistory();
+            addLog('🗑️ 對話歷史已清除', 'success');
+        }
+    };
+}
+
+// 初始化時渲染歷史
+renderHistory();
 
 init();

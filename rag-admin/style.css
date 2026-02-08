@@ -169,11 +169,38 @@ body.cyber-theme {
 }
 
 /* Table */
+.doc-table-wrapper {
+  max-height: 450px;
+  /* 約顯示 10 筆資料 */
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+}
+
+.doc-table-wrapper::-webkit-scrollbar {
+  width: 8px;
+}
+
+.doc-table-wrapper::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.doc-table-wrapper::-webkit-scrollbar-thumb {
+  background: var(--neon-cyan);
+  border-radius: 4px;
+}
+
 .cyber-table {
   width: 100%;
   border-collapse: collapse;
   font-family: var(--font-mono);
   font-size: 0.9rem;
+}
+
+.cyber-table thead th {
+  position: sticky;
+  top: 0;
+  background: #0a0a0c;
+  z-index: 1;
 }
 
 .cyber-table th {
@@ -294,4 +321,203 @@ body.cyber-theme {
 .icon-btn:hover {
   background: var(--neon-cyan);
   color: #000;
+}
+
+/* Action Buttons in Table */
+.edit-btn,
+.delete-btn {
+  background: transparent;
+  border: 1px solid currentColor;
+  cursor: pointer;
+  padding: 4px 8px;
+  margin-right: 4px;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.edit-btn {
+  color: var(--neon-yellow);
+}
+
+.edit-btn:hover {
+  background: var(--neon-yellow);
+  color: #000;
+  box-shadow: 0 0 10px var(--neon-yellow);
+}
+
+.delete-btn {
+  color: var(--neon-magenta);
+}
+
+.delete-btn:hover {
+  background: var(--neon-magenta);
+  color: #fff;
+  box-shadow: 0 0 10px var(--neon-magenta);
+}
+
+/* Log Colors */
+.log-line.success {
+  color: #00ff88;
+}
+
+.log-line.error {
+  color: #ff3e3e;
+}
+
+.log-line.warning {
+  color: var(--neon-yellow);
+}
+
+/* RAG Q&A Section */
+.qa-section {
+  margin-top: 1rem;
+}
+
+.qa-input-wrapper {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 1rem;
+}
+
+.qa-input {
+  flex: 1;
+  padding: 12px 16px;
+  background: #000;
+  border: 1px solid var(--border-color);
+  color: var(--neon-cyan);
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  outline: none;
+}
+
+.model-select {
+  padding: 12px 16px;
+  background: #000;
+  border: 1px solid var(--border-color);
+  color: var(--neon-yellow);
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  outline: none;
+  cursor: pointer;
+  min-width: 160px;
+}
+
+.model-select:hover {
+  border-color: var(--neon-yellow);
+}
+
+.model-select option {
+  background: #000;
+  color: var(--text-main);
+}
+
+.qa-input:focus {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+}
+
+.qa-answer-box {
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid var(--border-color);
+  padding: 1.5rem;
+  min-height: 100px;
+  font-family: var(--font-body);
+  line-height: 1.8;
+  color: var(--text-main);
+  white-space: pre-wrap;
+}
+
+.qa-placeholder {
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+.qa-loading {
+  color: var(--neon-cyan);
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.qa-sources {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background: rgba(0, 242, 255, 0.05);
+  border-left: 3px solid var(--neon-cyan);
+  font-size: 0.85rem;
+}
+
+.qa-sources:empty {
+  display: none;
+}
+
+.qa-source-item {
+  color: var(--neon-cyan);
+  margin: 4px 0;
+}
+
+.qa-history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}
+
+.history-clear-btn {
+  background: transparent;
+  border: 1px solid var(--neon-magenta);
+  color: var(--neon-magenta);
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.history-clear-btn:hover {
+  background: var(--neon-magenta);
+  color: #fff;
+}
+
+.qa-history {
+  margin-top: 1rem;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.qa-history-item {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(0, 242, 255, 0.15);
+  padding: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.qa-history-q {
+  color: var(--neon-yellow);
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.qa-history-a {
+  color: var(--text-main);
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+}
+
+.qa-history-time {
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  margin-top: 0.5rem;
 }

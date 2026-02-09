@@ -950,10 +950,10 @@
 
         // 自動帶入 GAS URL (正式環境)，若是在本地開發則保留變數以免錯誤
         // 注意：本地開發時 <?= gasUrl ?> 不會被替換，因此需要判斷
-        let GAS_URL = "https://script.google.com/macros/s/AKfycbz1BVXzuEsSFQVGmmitASW57pfKHyQDLuejllMYTaKRZohoVBQXDK5RA2OR/exec";
+        let GAS_URL = "https://script.google.com/macros/s/AKfycbzbdllVZFKTHvFm8vlsrfYzHf0BtQjChEoHvVppm8x9T9ayJD0ndfZbFWaaqpMJ4OXp/exec";
         if (GAS_URL.includes("gasUrl")) {
             // 本地開發或 GitHub Pages (未透過 GAS 渲染) 時的 Fallback
-            GAS_URL = "https://script.google.com/macros/s/AKfycbz1BVXzuEsSFQVGmmitASW57pfKHyQDLuejllMYTaKRZohoVBQXDK5RA2OR/exec";
+            GAS_URL = "https://script.google.com/macros/s/AKfycbzbdllVZFKTHvFm8vlsrfYzHf0BtQjChEoHvVppm8x9T9ayJD0ndfZbFWaaqpMJ4OXp/exec";
         }
 
         // Auto-detect Mock Mode only for localhost or debugging

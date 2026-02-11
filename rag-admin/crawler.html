@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CardWay 信用卡爬蟲 - Perplexity RAG Builder</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Orbitron:wght@400;700&family=JetBrains+Mono&display=swap"
+        rel="stylesheet">
+    <!-- JSZip CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+
+<body class="cyber-theme">
+    <div id="app">
+        <header class="header">
+            <div class="logo">
+                <span class="glitch" data-text="CARDWAY">CARDWAY</span>
+                <span class="sub-logo">信用卡爬蟲 v1.0</span>
+            </div>
+            <div class="status-bar">
+                <a href="/index.html" class="nav-link">📊 RAG 管理</a>
+                <a href="/crawler.html" class="nav-link active">🕷️ 爬蟲工具</a>
+            </div>
+        </header>
+
+        <!-- 使用說明 Banner -->
+        <div class="guide-banner">
+            <div class="guide-title">📋 操作指南（三個月才用一次也不怕忘！）</div>
+            <div class="guide-steps">
+                <div class="guide-step active" id="guide-step-1">
+                    <div class="step-num">1</div>
+                    <div class="step-text">設定 API Key</div>
+                </div>
+                <div class="guide-arrow">→</div>
+                <div class="guide-step" id="guide-step-2">
+                    <div class="step-num">2</div>
+                    <div class="step-text">選卡＆爬取</div>
+                </div>
+                <div class="guide-arrow">→</div>
+                <div class="guide-step" id="guide-step-3">
+                    <div class="step-num">3</div>
+                    <div class="step-text">下載 ZIP</div>
+                </div>
+            </div>
+        </div>
+
+        <main class="container">
+
+            <!-- ===== STEP 1: 設定區 ===== -->
+            <section class="card" id="section-settings">
+                <div class="card-header">STEP 1 — 系統設定</div>
+                <div class="settings-grid">
+                    <div class="form-group">
+                        <label>Perplexity API Key</label>
+                        <input type="password" id="input-pplx-key" placeholder="pplx-xxxxxxxxxxxxxxxx">
+                        <p class="form-hint">從 <a href="https://www.perplexity.ai/settings/api" target="_blank"
+                                style="color: var(--neon-cyan);">Perplexity 設定頁</a> 取得</p>
+                    </div>
+                    <div class="form-group">
+                        <label>GAS WebApp URL</label>
+                        <input type="text" id="input-gas-url" placeholder="https://script.google.com/macros/s/xxx/exec">
+                        <p class="form-hint">用於從 Google Sheet 拉取卡片清單</p>
+                    </div>
+                    <div class="form-group">
+                        <label>Perplexity 模型</label>
+                        <select id="select-pplx-model" class="model-select">
+                            <option value="sonar">⚡ Sonar（最便宜，推薦）</option>
+                            <option value="sonar-pro">🧠 Sonar Pro（更精準）</option>
+                            <option value="sonar-reasoning">💡 Sonar Reasoning（推理）</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>查詢期間</label>
+                        <input type="text" id="input-time-period" value="2026 年上半年（2026/01/01 - 2026/06/30）">
+                    </div>
+                </div>
+                <div class="settings-actions">
+                    <button id="btn-save-config" class="cyber-btn primary">💾 儲存設定</button>
+                    <button id="btn-load-cards" class="cyber-btn primary">📥 從 Sheet 載入卡片</button>
+                </div>
+            </section>
+
+            <!-- ===== STEP 2: 卡片清單與執行 ===== -->
+            <section class="card" id="section-cards">
+                <div class="card-header">STEP 2 — 選擇卡片＆開始爬取</div>
+
+                <!-- 控制列 -->
+                <div class="card-controls">
+                    <div class="control-left">
+                        <button id="btn-select-all" class="cyber-btn sm">☑️ 全選</button>
+                        <button id="btn-deselect-all" class="cyber-btn sm">⬜ 取消全選</button>
+                        <input type="text" id="input-filter" class="filter-input" placeholder="🔍 搜尋卡片...">
+                        <span id="selected-count" class="selected-count">已選 0 張</span>
+                    </div>
+                    <div class="control-right">
+                        <button id="btn-start" class="cyber-btn primary lg">🚀 開始爬取</button>
+                        <button id="btn-pause" class="cyber-btn sm" disabled>⏸️ 暫停</button>
+                        <button id="btn-retry-failed" class="cyber-btn sm" style="display:none">🔄 重試失敗</button>
+                    </div>
+                </div>
+
+                <!-- 進度條 -->
+                <div class="progress-wrapper" id="progress-wrapper" style="display:none">
+                    <div class="progress-info">
+                        <span id="progress-text">0 / 0</span>
+                        <span id="progress-percent">0%</span>
+                        <span id="progress-eta">預估剩餘：計算中...</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-stats">
+                        <span class="stat-success" id="stat-success">✅ 0</span>
+                        <span class="stat-fail" id="stat-fail">❌ 0</span>
+                        <span class="stat-skip" id="stat-skip">⏭️ 0</span>
+                    </div>
+                </div>
+
+                <!-- 卡片表格 -->
+                <div class="doc-table-wrapper" style="max-height: 500px;">
+                    <table class="cyber-table">
+                        <thead>
+                            <tr>
+                                <th width="40px"><input type="checkbox" id="th-check-all"></th>
+                                <th width="5%">#</th>
+                                <th width="15%">整合編號</th>
+                                <th width="12%">銀行</th>
+                                <th width="23%">卡片名稱</th>
+                                <th width="20%">核心定位</th>
+                                <th width="10%">狀態</th>
+                                <th width="10%">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="card-list">
+                            <tr>
+                                <td colspan="8" class="empty-msg">請先設定 GAS URL，然後點擊「從 Sheet 載入卡片」</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ===== STEP 3: 結果與下載 ===== -->
+            <section class="card" id="section-results" style="display:none">
+                <div class="card-header">STEP 3 — 結果下載</div>
+                <div class="result-actions">
+                    <button id="btn-download-zip" class="cyber-btn primary lg">📦 全部下載 ZIP</button>
+                    <button id="btn-download-success" class="cyber-btn sm">✅ 僅下載成功的</button>
+                    <span id="result-summary" class="result-summary"></span>
+                </div>
+
+                <!-- 預覽區 -->
+                <div class="preview-wrapper">
+                    <div class="preview-header">
+                        <span>📄 預覽</span>
+                        <select id="select-preview" class="model-select" style="min-width: 280px;">
+                            <option value="">-- 選擇卡片預覽 --</option>
+                        </select>
+                        <button id="btn-copy-preview" class="cyber-btn sm">📋 複製</button>
+                    </div>
+                    <pre id="preview-content" class="preview-box">選擇一張卡片以預覽 Markdown 內容</pre>
+                </div>
+            </section>
+
+            <!-- 終端機 Log -->
+            <section class="log-section card">
+                <div class="card-header">系統日誌 (CRAWLER LOGS)</div>
+                <div id="terminal-log" class="terminal-box">
+                    <div class="log-line">[系統] 信用卡爬蟲工具就緒。</div>
+                    <div class="log-line">[提示] 三個月沒用了？沒關係，跟著上方 3 個步驟走就好 👆</div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+    <script type="module" src="/crawler.js"></script>
+</body>
+
+</html>

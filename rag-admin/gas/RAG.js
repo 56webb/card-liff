@@ -19,8 +19,8 @@ function setupAndSync() {
         payload: JSON.stringify({ displayName: "我的 PDF 知識庫" }),
         muteHttpExceptions: true
       });
-      const data = JSON.parse(res.getContentText());
-      if (data.name) {
+      const data = safeJSONParse(res.getContentText(), 'setupAndSync');
+      if (data && data.name) {
         storeName = data.name;
         props.setProperty('FILE_STORE_NAME', storeName);
         Logger.log(`✅ 建立成功！新 Store ID: ${storeName}`);
@@ -117,8 +117,15 @@ function syncDriveToGemini() {
     // 準備 Blob (如果是 Google 文件，轉換為 PDF)
     let blobToUpload = null;
 
-    if (mimeType === 'application/pdf' || mimeType === 'text/plain') {
+    // 寬鬆判斷：如果是 .md 結尾，強制視為 Markdown
+    const isMarkdown = fileName.toLowerCase().endsWith('.md');
+
+    if (mimeType === 'application/pdf' || mimeType === 'text/plain' || mimeType === 'text/markdown' || isMarkdown) {
       blobToUpload = file.getBlob();
+      // ⚠️ 強制修正 MIME Type (Drive 常常把 .md 判成 application/octet-stream)
+      if (isMarkdown) {
+        blobToUpload = blobToUpload.setContentType('text/markdown');
+      }
     } else if (mimeType.includes('vnd.google-apps')) {
       Logger.log(`   🔄 正在轉換 Google 文件為 PDF...`);
       blobToUpload = file.getAs('application/pdf');
@@ -181,14 +188,14 @@ function uploadBlobToGemini(blob, displayName, storeName, apiKey) {
       return null;
     }
 
-    const fileData = JSON.parse(resText);
-    if (fileData.file && fileData.file.displayName) {
+    const fileData = safeJSONParse(resText, 'uploadBlobToGemini-upload');
+    if (fileData && fileData.file && fileData.file.displayName) {
       Logger.log(`   ✅ 檔案上傳成功: ${fileData.file.displayName} (URI: ${fileData.file.uri})`);
     } else {
       Logger.log(`   ⚠️ 檔案上傳成功，但 displayName 未預期回傳。完整回應: ${resText.substring(0, 200)}`);
     }
 
-    if (!fileData.file || !fileData.file.name) return null;
+    if (!fileData || !fileData.file || !fileData.file.name) return null;
     const fileResourceName = fileData.file.name;
 
     // 2. 導入到 Store
@@ -205,8 +212,8 @@ function uploadBlobToGemini(blob, displayName, storeName, apiKey) {
       return null;
     }
 
-    const linkData = JSON.parse(linkRes.getContentText());
-    let finalDocName = linkData.name;
+    const linkData = safeJSONParse(linkRes.getContentText(), 'uploadBlobToGemini-link');
+    let finalDocName = linkData ? linkData.name : null;
 
     // 如果回傳是 Operation，等待完成以取得真實 Document Name
     if (finalDocName && finalDocName.includes('/operations/')) {
@@ -216,9 +223,9 @@ function uploadBlobToGemini(blob, displayName, storeName, apiKey) {
         try {
           const opUrl = `https://generativelanguage.googleapis.com/v1beta/${finalDocName}?key=${apiKey}`;
           const opRes = UrlFetchApp.fetch(opUrl, { muteHttpExceptions: true });
-          const opData = JSON.parse(opRes.getContentText());
+          const opData = safeJSONParse(opRes.getContentText(), 'uploadBlobToGemini-poll');
 
-          if (opData.done) {
+          if (opData && opData.done) {
             if (opData.response && opData.response.name) {
               finalDocName = opData.response.name;
               Logger.log(`   ✅ 導入完成，取得文件 ID: ${finalDocName.split('/').pop()}`);
@@ -263,11 +270,16 @@ function getLiveDocuments(storeName, apiKey) {
       let url = `https://generativelanguage.googleapis.com/v1beta/${storeName}/documents?key=${apiKey}&pageSize=20`;
       if (nextPageToken) url += `&pageToken=${nextPageToken}`;
       const res = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
-      const data = JSON.parse(res.getContentText());
-      if (data.documents) {
+      const data = safeJSONParse(res.getContentText(), 'getLiveDocuments');
+
+      if (data && data.documents) {
         docs = docs.concat(data.documents);
       }
-      nextPageToken = data.nextPageToken;
+      if (data) {
+        nextPageToken = data.nextPageToken;
+      } else {
+        nextPageToken = null;
+      }
     } while (nextPageToken);
   } catch (e) {
     Logger.log(`   ⚠️ 無法取得文件清單: ${e.toString()}`);
@@ -297,10 +309,57 @@ function clearCurrentStore() {
   return `已執行 ${deleteTotal} 次刪除指令，對照表已重置。`;
 }
 
+// 處理 POST 請求 (v2: 支援 text/plain + JSON Body 以解決 Redirect 參數遺失問題)
+function doPost(e) {
+  let result = { status: 'ok', message: 'Ready' };
+
+  try {
+    // 1. 嘗試解析 JSON Body (支援 text/plain 以避免 OPTIONS)
+    let postData = {};
+    if (e.postData && e.postData.contents) {
+      // 使用 safeJSONParse 避免崩潰，如果是一般 form-urlencoded 則可能會解析失敗，視為空物件
+      const parsed = safeJSONParse(e.postData.contents, 'doPost');
+      if (parsed) postData = parsed;
+    }
+
+    // 2. 將 Body 參數合併到 e.parameter
+    if (postData.action) {
+      if (!e.parameter) e.parameter = {};
+      e.parameter.action = postData.action;
+      // 若有其他參數也可在此合併，目前只有 action
+    }
+
+    // 如果還是沒有 action，但有 question (可能是 askQuestion)，也補上
+    if (postData.question) {
+      if (!e.parameter) e.parameter = {};
+      e.parameter.question = postData.question;
+      // e.parameter.model 等等...
+      if (postData.model) e.parameter.model = postData.model;
+    }
+
+
+    // 3. 轉發給 doGet
+    return doGet(e);
+
+  } catch (err) {
+    result.status = 'error';
+    result.message = err.toString();
+    return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
 function doGet(e) {
   const props = PropertiesService.getScriptProperties();
-  const action = e.parameter.action;
-  if (!action) return ContentService.createTextOutput("RAG Active").setMimeType(ContentService.MimeType.TEXT);
+
+  // 安全檢查：確保 e.parameter 存在
+  const params = e && e.parameter ? e.parameter : {};
+  const action = params.action;
+
+  // 如果沒有 action，預設檢查是否為 RAG 請求 (相容性)
+  if (!action) {
+    return ContentService.createTextOutput("RAG Active").setMimeType(ContentService.MimeType.TEXT);
+  }
+
   let result = { status: 'ok', message: 'Ready', nameMap: {} };
   try {
     if (action === 'sync') {
@@ -315,8 +374,8 @@ function doGet(e) {
       result.nameMap = getFilenameMap();
     } else if (action === 'updateName') {
       // 更新對照表中的中文名稱
-      const docName = e.parameter.docName;
-      const newName = e.parameter.newName;
+      const docName = params.docName;
+      const newName = params.newName;
       if (docName && newName) {
         let nameMap = getFilenameMap();
         nameMap[docName] = newName;
@@ -327,10 +386,41 @@ function doGet(e) {
         result.status = 'error';
         result.message = '缺少 docName 或 newName 參數';
       }
+    } else if (action === 'getCardList') {
+      // 從 Google Sheet 讀取信用卡清單
+      const CARD_SHEET_ID = '1gKUd6bpIWJMZifTLDieBbt2D45ZC81M6OckspCySFu4';
+      const CARD_SHEET_TAB = '信用卡清單';
+      try {
+        const ss = SpreadsheetApp.openById(CARD_SHEET_ID);
+        const sheet = ss.getSheetByName(CARD_SHEET_TAB);
+        if (!sheet) {
+          result.status = 'error';
+          result.message = `找不到分頁「${CARD_SHEET_TAB}」`;
+        } else {
+          const data = sheet.getDataRange().getValues();
+          // const headers = data[0]; // 第一列為表頭
+          const cards = [];
+          for (let i = 1; i < data.length; i++) {
+            const row = data[i];
+            if (!row[0]) continue; // 跳過空列
+            cards.push({
+              id: row[0],        // A: 整合編號
+              bank: row[1],      // B: 銀行名稱
+              name: row[2],      // C: 卡片名稱
+              positioning: row[3] // D: 核心定位
+            });
+          }
+          result.cards = cards;
+          result.message = `成功讀取 ${cards.length} 張卡片`;
+        }
+      } catch (sheetErr) {
+        result.status = 'error';
+        result.message = `讀取 Sheet 失敗: ${sheetErr.toString()}`;
+      }
     } else if (action === 'askQuestion') {
       // RAG 問答功能
-      const question = e.parameter.question;
-      const model = e.parameter.model || 'gemini-2.5-flash'; // 預設模型
+      const question = params.question;
+      const model = params.model || 'gemini-2.5-flash'; // 預設模型
       if (!question) {
         result.status = 'error';
         result.message = '缺少 question 參數';
@@ -347,7 +437,6 @@ function doGet(e) {
   }
   return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
 }
-function doPost(e) { return doGet(e); }
 
 function checkSettings() {
   const props = PropertiesService.getScriptProperties();
@@ -401,7 +490,16 @@ function askRAG(question, storeName, apiKey, model) {
       }
     }],
     "systemInstruction": {
-      "parts": [{ "text": "你是一個專業的知識庫助手。請根據提供的文件內容回答問題。如果文件中沒有相關資訊，請誠實告知。回答時請使用繁體中文。" }]
+      // 使用更完整的 Prompt，確保回答品質
+      "parts": [{
+        "text": `你是「卡衛」知識庫管理員。你的任務是測試 RAG 檢索效果。
+請根據「File Search」檢索到的文件內容回答用戶問題。
+
+規範：
+1. **引用來源**: 必須明確指出資訊來自哪份文件。
+2. **誠實回答**: 如果檢索到的內容中沒有答案，請直接說「文件中未找到相關資訊」，不要編造。
+3. **格式**: 使用繁體中文，條列式清晰呈現。
+4. **Markdown**: 支援 Markdown 格式。` }]
     }
   };
 
@@ -420,29 +518,23 @@ function askRAG(question, storeName, apiKey, model) {
       return { status: 'error', message: `API 錯誤 (${responseCode}): ${responseText.substring(0, 500)}` };
     }
 
-    const data = JSON.parse(responseText);
+    const data = safeJSONParse(responseText, 'askRAG');
 
     // 解析回答
     let answer = '';
     let sources = [];
     let nameMap = getFilenameMap();
+    let hasChunks = false;
 
-    if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+    if (data && data.candidates && data.candidates[0] && data.candidates[0].content) {
       answer = data.candidates[0].content.parts[0].text || '';
 
       // 解析引用來源 (Grounding Metadata)
       const metadata = data.candidates[0].groundingMetadata;
-      if (metadata) {
-        if (metadata.groundingChunks && metadata.groundingChunks.length > 0) {
-          Logger.log(`📚 RAG 回應包含 ${metadata.groundingChunks.length} 個引用來源`);
-        } else {
-          Logger.log(`⚠️ RAG 回應包含 metadata 但無 chunks`);
-        }
-      } else {
-        Logger.log(`⚠️ RAG 回應未包含 groundingMetadata (模型未引用文件)`);
-      }
+      if (metadata && metadata.groundingChunks && metadata.groundingChunks.length > 0) {
+        hasChunks = true;
+        Logger.log(`📚 RAG 回應包含 ${metadata.groundingChunks.length} 個引用來源`);
 
-      if (metadata && metadata.groundingChunks) {
         sources = metadata.groundingChunks.map(chunk => {
           if (chunk.retrievedContext) {
             return {
@@ -452,7 +544,18 @@ function askRAG(question, storeName, apiKey, model) {
           }
           return null;
         }).filter(s => s !== null);
+      } else {
+        Logger.log(`⚠️ RAG 回應未包含有效 chunks`);
+        // 💡 提示使用者：真的沒撈到
+        if (storeName) {
+          answer += `\n\n(⚠️ RAG: No documents found in ${storeName})`;
+        } else {
+          answer += `\n\n(⚠️ RAG: No Store Name configured)`;
+        }
       }
+    } else {
+      // 如果 parsing 成功但結構不對
+      return { status: 'error', message: 'API 回應格式異常' };
     }
 
     return {
@@ -518,10 +621,10 @@ function testRAGRetrieval() {
     Logger.log(`回應代碼: ${responseCode}`);
 
     if (responseCode === 200) {
-      const result = JSON.parse(responseText);
+      const result = safeJSONParse(responseText, 'testRAGRetrieval');
 
       // 解析回答
-      if (result.candidates && result.candidates[0] && result.candidates[0].content) {
+      if (result && result.candidates && result.candidates[0] && result.candidates[0].content) {
         const answer = result.candidates[0].content.parts[0].text;
         Logger.log(`\n💡 RAG 回答:\n${answer}`);
 
@@ -566,9 +669,9 @@ function listStoreDocuments() {
 
   try {
     const res = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
-    const data = JSON.parse(res.getContentText());
+    const data = safeJSONParse(res.getContentText(), 'listStoreDocuments');
 
-    if (data.documents && data.documents.length > 0) {
+    if (data && data.documents && data.documents.length > 0) {
       Logger.log(`📚 Store [${storeName}] 中有 ${data.documents.length} 份文件：`);
       data.documents.forEach((doc, i) => {
         const chineseName = nameMap[doc.name];
@@ -581,5 +684,20 @@ function listStoreDocuments() {
     }
   } catch (e) {
     Logger.log(`❌ 發生錯誤: ${e.toString()}`);
+  }
+}
+
+/**
+ * 輔助函式：安全解析 JSON
+ * 當 API 回傳 HTML 錯誤頁面或空字串時，不會崩潰，而是回傳 null 並 Log
+ */
+function safeJSONParse(text, context = '') {
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    Logger.log(`⚠️ JSON 解析失敗 [${context}]: ${e.message}`);
+    // 避免 Log 太長，只印前 500 字
+    Logger.log(`   原始回應範例: ${text.substring(0, 500)}...`);
+    return null;
   }
 }

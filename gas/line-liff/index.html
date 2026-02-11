@@ -1445,6 +1445,8 @@
                 const existingCard = myWallet.find(c => c.name === cardName && c.bank === bank);
                 const isSelected = !!existingCard;
                 const currentOrg = existingCard?.org || 'na';
+                const currentLevel = existingCard?.level || 'LV2'; // Default LV2
+                const currentRights = existingCard?.rights || []; // Default empty
 
                 // Card info row
                 const infoRow = document.createElement('div');
@@ -1464,23 +1466,80 @@
                 infoRow.appendChild(btn);
                 item.appendChild(infoRow);
 
-                // Card organization selector (only for non-special cards)
-                if (isSelected && !isSpecialOrg) {
-                    const orgSelector = document.createElement('div');
-                    orgSelector.className = 'card-org-selector';
+                // Settings Area (Only if selected)
+                if (isSelected) {
+                    const settingsDiv = document.createElement('div');
+                    settingsDiv.style.marginTop = '12px';
+                    settingsDiv.style.paddingTop = '12px';
+                    settingsDiv.style.borderTop = '1px solid var(--border)';
+                    settingsDiv.style.display = 'flex';
+                    settingsDiv.style.flexDirection = 'column';
+                    settingsDiv.style.gap = '12px';
 
-                    ['na', 'visa', 'mastercard', 'jcb'].forEach(org => {
-                        const orgBtn = document.createElement('button');
-                        orgBtn.className = `org-btn ${currentOrg === org ? 'active' : ''}`;
-                        orgBtn.innerText = org === 'na' ? 'N/A' : org.toUpperCase();
-                        orgBtn.onclick = (e) => {
+                    // 1. Level Selector (All Cards)
+                    const levelDiv = document.createElement('div');
+                    levelDiv.innerHTML = `<div style="font-size:12px; color:var(--text-sub); margin-bottom:6px;">卡片等級</div>`;
+                    const levelCont = document.createElement('div');
+                    levelCont.className = 'card-org-selector'; // Reuse style
+
+                    ['LV1', 'LV2', 'LV3'].forEach(lv => {
+                        const lvBtn = document.createElement('button');
+                        lvBtn.className = `org-btn ${currentLevel === lv ? 'active' : ''}`;
+                        lvBtn.innerText = lv;
+                        lvBtn.onclick = (e) => {
                             e.stopPropagation();
-                            updateCardOrg(bank, cardName, org);
+                            updateCardLevel(bank, cardName, lv);
                         };
-                        orgSelector.appendChild(orgBtn);
+                        levelCont.appendChild(lvBtn);
                     });
+                    levelDiv.appendChild(levelCont);
+                    settingsDiv.appendChild(levelDiv);
 
-                    item.appendChild(orgSelector);
+                    // 2. Organization Selector (Non-special cards)
+                    if (!isSpecialOrg) {
+                        const orgDiv = document.createElement('div');
+                        orgDiv.innerHTML = `<div style="font-size:12px; color:var(--text-sub); margin-bottom:6px;">發卡組織</div>`;
+                        const orgCont = document.createElement('div');
+                        orgCont.className = 'card-org-selector';
+
+                        ['na', 'visa', 'mastercard', 'jcb'].forEach(org => {
+                            const orgBtn = document.createElement('button');
+                            orgBtn.className = `org-btn ${currentOrg === org ? 'active' : ''}`;
+                            orgBtn.innerText = org === 'na' ? 'N/A' : org.toUpperCase();
+                            orgBtn.onclick = (e) => {
+                                e.stopPropagation();
+                                updateCardOrg(bank, cardName, org);
+                            };
+                            orgCont.appendChild(orgBtn);
+                        });
+                        orgDiv.appendChild(orgCont);
+                        settingsDiv.appendChild(orgDiv);
+                    }
+
+                    // 3. CUBE Rights Selector (Only for CUBE Card)
+                    if (cardName.includes('CUBE')) {
+                        const rightsDiv = document.createElement('div');
+                        rightsDiv.innerHTML = `<div style="font-size:12px; color:var(--text-sub); margin-bottom:6px;">持有權益 (可複選)</div>`;
+                        const rightsCont = document.createElement('div');
+                        rightsCont.className = 'chip-container';
+
+                        const rightsOptions = ['瘋大港', '玩數位', '慶生月', '童樂匯'];
+                        rightsOptions.forEach(right => {
+                            const rBtn = document.createElement('div');
+                            const hasRight = currentRights.includes(right);
+                            rBtn.className = `mini-chip ${hasRight ? 'selected' : ''}`;
+                            rBtn.innerText = right;
+                            rBtn.onclick = (e) => {
+                                e.stopPropagation();
+                                toggleCardRight(bank, cardName, right);
+                            };
+                            rightsCont.appendChild(rBtn);
+                        });
+                        rightsDiv.appendChild(rightsCont);
+                        settingsDiv.appendChild(rightsDiv);
+                    }
+
+                    item.appendChild(settingsDiv);
                 }
 
                 container.appendChild(item);
@@ -1496,6 +1555,29 @@
             }
         }
 
+        function updateCardLevel(bank, cardName, level) {
+            const card = myWallet.find(c => c.name === cardName && c.bank === bank);
+            if (card) {
+                card.level = level;
+                renderCards(bank);
+                showToast(`已設定為 ${level}`);
+            }
+        }
+
+        function toggleCardRight(bank, cardName, right) {
+            const card = myWallet.find(c => c.name === cardName && c.bank === bank);
+            if (card) {
+                if (!card.rights) card.rights = [];
+                const idx = card.rights.indexOf(right);
+                if (idx > -1) {
+                    card.rights.splice(idx, 1); // Remove
+                } else {
+                    card.rights.push(right); // Add
+                }
+                renderCards(bank);
+            }
+        }
+
         function toggleCard(bank, name, org = 'na') {
             const idx = myWallet.findIndex(c => c.name === name);
             if (idx > -1) {
@@ -1507,7 +1589,7 @@
                 // Clean mainCards
                 userProfile.mainCards = userProfile.mainCards.filter(n => n !== name);
             } else {
-                myWallet.push({ bank, name, org });
+                myWallet.push({ bank, name, org, level: 'LV2', rights: [] });
             }
 
             updateCartCount();

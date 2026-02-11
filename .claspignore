@@ -1,0 +1,18 @@
+# 由於 rootDir 已設為 gas/，clasp 預設只處理該目錄內的檔案。
+# 此無視檔案列表將在 gas/ 目錄下生效 (若有)。
+# 根目錄檔案不會被包含。
+
+**/.git
+**/.gitignore
+**/node_modules
+**/src
+**/RAG
+**/ai
+**/crawler
+**/python_tools
+**/rag-admin
+**/db
+**/.DS_Store
+**/.env
+**/.clasp.json
+**/.claspignore

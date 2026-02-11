@@ -17,14 +17,105 @@ const CONFIG_KEYS = {
     GAS_URL: 'CRAWLER_GAS_URL',
     MODEL: 'CRAWLER_MODEL',
     TIME_PERIOD: 'CRAWLER_TIME_PERIOD',
+    PROMPT_TEMPLATE: 'CRAWLER_PROMPT_TEMPLATE',
 };
+
+const DEFAULT_PROMPT_TEMPLATE = `請擔任專業的「金融產品條款分析師」，針對【{{bank}} {{name}}】進行 {{timePeriod}} 的最新權益深度搜索。
+
+請務必進行深度聯網搜尋，優先查找該銀行的官方網頁、權益手冊 PDF。
+【重要】請模仿 Perplexity 網頁版的深度搜尋模式：
+1. 先搜尋該卡片的官方網頁。
+2. 確認是否有「2026」或「115年」的權益更新公告。
+3. 若無明確 2026 公告，請查看最新的權益手冊有效期限（通常延續至 2026/06 或 2026/12）。
+4. 若確實無法確認，請標註「⚠️ 待確認」，但請盡量從現有資料推斷（例如：2025 下半年權益通常延續至 2026 初）。
+確保資訊完整且正確。
+
+🆔 卡片編號：{{id}}
+🏷️ 市場定位：{{positioning}}
+
+# 請以下列 Markdown 格式輸出完整分析報告：
+
+## 基本資訊
+| 項目 | 內容 |
+|------|------|
+| 發卡銀行 | （填入） |
+| 卡片全名 | （填入） |
+| 卡片等級 | 普卡/金卡/白金/御璽/鼎極/無限 |
+| 卡組織 | Visa/MasterCard/JCB/AMEX |
+| 年費 | 金額、首年是否免費 |
+| 免年費條件 | 刷卡門檻/自動扣繳/數位帳戶等 |
+| 官方連結 | URL |
+
+## 回饋機制總覽
+| 消費場景 | 回饋類型 | 回饋率 | 每月上限 | 換算可刷額度 | 需登錄 | 備註 |
+|----------|----------|--------|----------|-------------|--------|------|
+| 國內一般消費 | | | | | | |
+| 海外一般消費 | | | | | | |
+| 日本消費 | | | | | | |
+| 韓國消費 | | | | | | |
+| 網購 (momo/蝦皮/PChome) | | | | | | |
+| 行動支付（請列出所有支援的：Apple Pay / Google Pay / LINE Pay / Samsung Pay / 街口 / 台灣 Pay / 悠遊付 / Pi 錢包等，每種分開列一行） | | | | | | |
+| 加油 | | | | | | |
+| 超市/量販 | | | | | | |
+| 百貨公司 | | | | | | |
+| 餐飲 | | | | | | |
+| 交通 (台鐵/高鐵/捷運) | | | | | | |
+| 電子票證自動加值 | | | | | | |
+| 外送平台 | | | | | | |
+| 串流訂閱 | | | | | | |
+| 保費 | | | | | | |
+| 繳稅 | | | | | | |
+| 其他特殊回饋（若有上述未列出的獨特優惠，請補充在此） | | | | | | |
+
+（僅填入該卡實際有優惠的場景，無優惠的場景請刪除該列）
+
+## 指定通路加碼明細
+（列出該卡特有的聯名/合作通路，例如：Costco、新光三越、momo、蝦皮等）
+- 通路名稱：回饋 % / 上限 / 條件
+
+## 回饋的魔鬼細節
+- **回饋類型**：現金回饋 / 紅利點數 / 哩程（兌換比率）
+- **回饋上限計算週期**：每月 / 每期帳單 / 每季 / 每年
+- **排除項目**：（哪些消費不列入回饋？例如：繳費、代扣、保費、悠遊加值等）
+- **需登錄活動**：是 / 否（登錄方式與截止日）
+- **基本門檻**：是否需達單月最低消費才啟動回饋
+- **新戶 vs 舊戶**：首刷禮差異、限定優惠
+
+## 海外消費細節
+- 海外交易手續費：（%）
+- 是否有手續費補貼/減免
+- DCC（動態貨幣轉換）注意事項
+
+## 附加權益
+- **保險**：旅平險 / 旅不便險 / 購物保障 / 不便險理賠額度
+- **機場**：免費接送次數 / 貴賓室 / 機場停車
+- **分期**：0 利率分期（期數/門檻/適用通路）
+- **其他**：電影優惠 / 停車優惠 / 聯名特約
+
+## 優缺點總結
+### 👍 優點（3-5 點）
+### 👎 缺點（2-3 點）
+
+## 最適合的使用族群
+（用 1-2 句話描述這張卡最適合什麼樣的人）
+
+## 資料來源
+（附上查詢到的官方連結）
+
+---
+⚠️ 注意事項：
+1. 只提供確認過的資訊，無法確認的標記「⚠️ 待確認」
+2. 回饋上限金額與換算可刷額度請用**粗體**
+3. 若 {{year}} 最新公告與舊資料衝突，以最新為準並註明
+4. 不要編造不存在的優惠或條件`;
 
 function loadConfig() {
     return {
         pplxKey: localStorage.getItem(CONFIG_KEYS.PPLX_KEY) || '',
         gasUrl: localStorage.getItem(CONFIG_KEYS.GAS_URL) || '',
-        model: localStorage.getItem(CONFIG_KEYS.MODEL) || 'sonar',
+        model: localStorage.getItem(CONFIG_KEYS.MODEL) || 'sonar-pro',
         timePeriod: localStorage.getItem(CONFIG_KEYS.TIME_PERIOD) || '2026 年上半年（2026/01/01 - 2026/06/30）',
+        promptTemplate: localStorage.getItem(CONFIG_KEYS.PROMPT_TEMPLATE) || DEFAULT_PROMPT_TEMPLATE,
     };
 }
 
@@ -33,6 +124,7 @@ function saveConfig(cfg) {
     localStorage.setItem(CONFIG_KEYS.GAS_URL, cfg.gasUrl);
     localStorage.setItem(CONFIG_KEYS.MODEL, cfg.model);
     localStorage.setItem(CONFIG_KEYS.TIME_PERIOD, cfg.timePeriod);
+    localStorage.setItem(CONFIG_KEYS.PROMPT_TEMPLATE, cfg.promptTemplate);
 }
 
 // --- UI 元件 ---
@@ -67,11 +159,13 @@ function init() {
     const inputGasUrl = document.getElementById('input-gas-url');
     const selectModel = document.getElementById('select-pplx-model');
     const inputTimePeriod = document.getElementById('input-time-period');
+    const inputPromptTemplate = document.getElementById('input-prompt-template');
 
     if (inputPplxKey) inputPplxKey.value = cfg.pplxKey;
     if (inputGasUrl) inputGasUrl.value = cfg.gasUrl;
     if (selectModel) selectModel.value = cfg.model;
     if (inputTimePeriod) inputTimePeriod.value = cfg.timePeriod;
+    if (inputPromptTemplate) inputPromptTemplate.value = cfg.promptTemplate;
 
     // 如果已有設定，自動載入
     if (cfg.pplxKey && cfg.gasUrl) {
@@ -91,6 +185,7 @@ function bindEvents() {
             gasUrl: document.getElementById('input-gas-url').value.trim(),
             model: document.getElementById('select-pplx-model').value,
             timePeriod: document.getElementById('input-time-period').value.trim(),
+            promptTemplate: document.getElementById('input-prompt-template').value,
         };
 
         if (!cfg.pplxKey) { alert('請輸入 Perplexity API Key'); return; }
@@ -283,88 +378,17 @@ function buildPrompt(card) {
     const cfg = loadConfig();
     const year = new Date().getFullYear();
 
-    return `請擔任專業的「金融產品條款分析師」，針對【${card.bank} ${card.name}】進行 ${cfg.timePeriod} 的最新權益深度搜索。
+    let template = cfg.promptTemplate;
 
-請忽略廣告行銷用語，直接查找官網公告、權益手冊或 T&C 條款。
+    // Replace variables
+    template = template.replaceAll('{{bank}}', card.bank || '')
+        .replaceAll('{{name}}', card.name || '')
+        .replaceAll('{{id}}', card.id || '')
+        .replaceAll('{{positioning}}', card.positioning || '')
+        .replaceAll('{{timePeriod}}', cfg.timePeriod || '')
+        .replaceAll('{{year}}', year);
 
-🆔 卡片編號：${card.id}
-🏷️ 市場定位：${card.positioning}
-
-# 請以下列 Markdown 格式輸出完整分析報告：
-
-## 基本資訊
-| 項目 | 內容 |
-|------|------|
-| 發卡銀行 | （填入） |
-| 卡片全名 | （填入） |
-| 卡片等級 | 普卡/金卡/白金/御璽/鼎極/無限 |
-| 卡組織 | Visa/MasterCard/JCB/AMEX |
-| 年費 | 金額、首年是否免費 |
-| 免年費條件 | 刷卡門檻/自動扣繳/數位帳戶等 |
-| 官方連結 | URL |
-
-## 回饋機制總覽
-| 消費場景 | 回饋類型 | 回饋率 | 每月上限 | 換算可刷額度 | 需登錄 | 備註 |
-|----------|----------|--------|----------|-------------|--------|------|
-| 國內一般消費 | | | | | | |
-| 海外一般消費 | | | | | | |
-| 日本消費 | | | | | | |
-| 韓國消費 | | | | | | |
-| 網購 (momo/蝦皮/PChome) | | | | | | |
-| 行動支付（請列出所有支援的：Apple Pay / Google Pay / LINE Pay / Samsung Pay / 街口 / 台灣 Pay / 悠遊付 / Pi 錢包等，每種分開列一行） | | | | | | |
-| 加油 | | | | | | |
-| 超市/量販 | | | | | | |
-| 百貨公司 | | | | | | |
-| 餐飲 | | | | | | |
-| 交通 (台鐵/高鐵/捷運) | | | | | | |
-| 電子票證自動加值 | | | | | | |
-| 外送平台 | | | | | | |
-| 串流訂閱 | | | | | | |
-| 保費 | | | | | | |
-| 繳稅 | | | | | | |
-| 其他特殊回饋（若有上述未列出的獨特優惠，請補充在此） | | | | | | |
-
-（僅填入該卡實際有優惠的場景，無優惠的場景請刪除該列）
-
-## 指定通路加碼明細
-（列出該卡特有的聯名/合作通路，例如：Costco、新光三越、momo、蝦皮等）
-- 通路名稱：回饋 % / 上限 / 條件
-
-## 回饋的魔鬼細節
-- **回饋類型**：現金回饋 / 紅利點數 / 哩程（兌換比率）
-- **回饋上限計算週期**：每月 / 每期帳單 / 每季 / 每年
-- **排除項目**：（哪些消費不列入回饋？例如：繳費、代扣、保費、悠遊加值等）
-- **需登錄活動**：是 / 否（登錄方式與截止日）
-- **基本門檻**：是否需達單月最低消費才啟動回饋
-- **新戶 vs 舊戶**：首刷禮差異、限定優惠
-
-## 海外消費細節
-- 海外交易手續費：（%）
-- 是否有手續費補貼/減免
-- DCC（動態貨幣轉換）注意事項
-
-## 附加權益
-- **保險**：旅平險 / 旅不便險 / 購物保障 / 不便險理賠額度
-- **機場**：免費接送次數 / 貴賓室 / 機場停車
-- **分期**：0 利率分期（期數/門檻/適用通路）
-- **其他**：電影優惠 / 停車優惠 / 聯名特約
-
-## 優缺點總結
-### 👍 優點（3-5 點）
-### 👎 缺點（2-3 點）
-
-## 最適合的使用族群
-（用 1-2 句話描述這張卡最適合什麼樣的人）
-
-## 資料來源
-（附上查詢到的官方連結）
-
----
-⚠️ 注意事項：
-1. 只提供確認過的資訊，無法確認的標記「⚠️ 待確認」
-2. 回饋上限金額與換算可刷額度請用**粗體**
-3. 若 ${year} 最新公告與舊資料衝突，以最新為準並註明
-4. 不要編造不存在的優惠或條件`;
+    return template;
 }
 
 async function callPerplexity(card) {
@@ -374,7 +398,7 @@ async function callPerplexity(card) {
     const response = await fetch('https://api.perplexity.ai/chat/completions', {
         method: 'POST',
         headers: {
-            'Authorization': `Bearer ${cfg.pplxKey}`,
+            'Authorization': `Bearer ${cfg.pplxKey} `,
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -392,21 +416,22 @@ async function callPerplexity(card) {
             max_tokens: 4000,
             temperature: 0.1,
             return_citations: true,
-            search_recency_filter: 'month',
+            // 移除 recency_filter 以避免漏掉舊但有效的官網頁面
+            // search_recency_filter: 'year', 
         }),
         signal: abortController?.signal,
     });
 
     if (!response.ok) {
         const errText = await response.text();
-        throw new Error(`API ${response.status}: ${errText.substring(0, 200)}`);
+        throw new Error(`API ${response.status}: ${errText.substring(0, 200)} `);
     }
 
     const data = await response.json();
     let markdown = data.choices?.[0]?.message?.content || '';
 
     // 加上標題與元資料
-    const header = `# ${card.bank} - ${card.name}\n\n> 🆔 編號：${card.id}  \n> 🏷️ 核心定位：${card.positioning}  \n> 📅 資料更新日期：${new Date().toISOString().split('T')[0]}\n\n`;
+    const header = `# ${card.bank} - ${card.name} \n\n > 🆔 編號：${card.id} \n > 🏷️ 核心定位：${card.positioning} \n > 📅 資料更新日期：${new Date().toISOString().split('T')[0]} \n\n`;
 
     // 如果 AI 回覆已經包含標題，就不重複加
     if (!markdown.startsWith('# ')) {
@@ -414,7 +439,7 @@ async function callPerplexity(card) {
     } else {
         // 確保元資料存在
         if (!markdown.includes('編號')) {
-            markdown = markdown.replace(/^# .+\n/, `$&\n> 🆔 編號：${card.id}  \n> 🏷️ 核心定位：${card.positioning}  \n> 📅 資料更新日期：${new Date().toISOString().split('T')[0]}\n`);
+            markdown = markdown.replace(/^# .+\n/, `$ &\n > 🆔 編號：${card.id} \n > 🏷️ 核心定位：${card.positioning} \n > 📅 資料更新日期：${new Date().toISOString().split('T')[0]} \n`);
         }
     }
 
@@ -451,7 +476,7 @@ async function startCrawl() {
     let failCount = 0;
     const startTime = Date.now();
 
-    addLog(`🚀 開始爬取 ${total} 張卡片 (模型: ${cfg.model})`, 'warning');
+    addLog(`🚀 開始爬取 ${total} 張卡片(模型: ${cfg.model})`, 'warning');
 
     for (let i = 0; i < selectedCards.length; i++) {
         // 檢查暫停
@@ -477,13 +502,13 @@ async function startCrawl() {
         results[card.id] = { status: 'running', selected: true };
         renderCardTable(document.getElementById('input-filter')?.value || '');
 
-        addLog(`🔄 [${completed + 1}/${total}] 正在爬取: ${card.bank} ${card.name}`);
+        addLog(`🔄[${completed + 1}/${total}]正在爬取: ${card.bank} ${card.name} `);
 
         try {
             const markdown = await callPerplexity(card);
             results[card.id] = { status: 'success', markdown, selected: true };
             successCount++;
-            addLog(`✅ [${completed + 1}/${total}] 完成: ${card.bank} ${card.name}`, 'success');
+            addLog(`✅[${completed + 1}/${total}] 完成: ${card.bank} ${card.name} `, 'success');
         } catch (err) {
             if (err.name === 'AbortError') {
                 addLog('⏹️ 使用者中止爬取。', 'warning');
@@ -493,7 +518,7 @@ async function startCrawl() {
 
             results[card.id] = { status: 'error', error: err.message, selected: true };
             failCount++;
-            addLog(`❌ [${completed + 1}/${total}] 失敗: ${card.bank} ${card.name} — ${err.message}`, 'error');
+            addLog(`❌[${completed + 1}/${total}] 失敗: ${card.bank} ${card.name} — ${err.message} `, 'error');
         }
 
         completed++;
@@ -569,7 +594,7 @@ function updateProgress(completed, total, success, fail, startTime) {
     const etaMin = Math.floor(remaining / 60);
     const etaSec = remaining % 60;
 
-    document.getElementById('progress-fill').style.width = `${percent}%`;
+    document.getElementById('progress-fill').style.width = `${percent}% `;
     document.getElementById('progress-text').textContent = `${completed} / ${total}`;
     document.getElementById('progress-percent').textContent = `${percent}%`;
     document.getElementById('progress-eta').textContent = completed < total

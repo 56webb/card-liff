@@ -69,9 +69,9 @@
                     <div class="form-group">
                         <label>Perplexity 模型</label>
                         <select id="select-pplx-model" class="model-select">
-                            <option value="sonar">⚡ Sonar（最便宜，推薦）</option>
-                            <option value="sonar-pro">🧠 Sonar Pro（更精準）</option>
-                            <option value="sonar-reasoning">💡 Sonar Reasoning（推理）</option>
+                            <option value="sonar">⚡ Sonar（快速，但較簡略）</option>
+                            <option value="sonar-pro" selected>🧠 Sonar Pro（推薦，似網頁版）</option>
+                            <option value="sonar-reasoning">💡 Sonar Reasoning（深度推理 - 慢）</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -79,6 +79,18 @@
                         <input type="text" id="input-time-period" value="2026 年上半年（2026/01/01 - 2026/06/30）">
                     </div>
                 </div>
+
+                <!-- Prompt Template Section -->
+                <div class="form-group" style="margin-top: 1rem;">
+                    <details>
+                        <summary style="cursor: pointer; color: var(--neon-cyan); margin-bottom: 0.5rem;">📝 進階：自訂
+                            Prompt 提示詞 (點擊展開)</summary>
+                        <textarea id="input-prompt-template" rows="15" class="cyber-input"
+                            style="width:100%; font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; line-height: 1.4;"></textarea>
+                        <p class="form-hint">可用變數：{{bank}}, {{name}}, {{id}}, {{positioning}}, {{timePeriod}}</p>
+                    </details>
+                </div>
+
                 <div class="settings-actions">
                     <button id="btn-save-config" class="cyber-btn primary">💾 儲存設定</button>
                     <button id="btn-load-cards" class="cyber-btn primary">📥 從 Sheet 載入卡片</button>

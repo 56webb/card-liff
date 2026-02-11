@@ -1381,7 +1381,7 @@
                 }
             } catch (e) {
                 console.error("Save Failed:", e);
-                showModal(`儲存失敗！\n錯誤: ${e.message}\n(請截圖給工程師)`, "❌");
+                showModal(`儲存失敗！\n錯誤: ${e.message}\n網址: ${GAS_URL}\n(請截圖給工程師)`, "❌");
                 btn.innerHTML = oldText;
                 btn.disabled = false;
             }

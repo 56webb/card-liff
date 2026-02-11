@@ -1,7 +1,7 @@
 import './style.css'
 
 // =============================================
-// 信用卡爬蟲核心邏輯 (v2026.02.11 Fix 2)
+// 信用卡爬蟲核心邏輯 (v2026.02.11 Fix 3 - Prompt Template Enhanced)
 // =============================================
 
 // --- 狀態管理 ---
@@ -380,13 +380,21 @@ function buildPrompt(card) {
 
     let template = cfg.promptTemplate;
 
-    // Replace variables
+    // Replace variables (Standard)
     template = template.replaceAll('{{bank}}', card.bank || '')
         .replaceAll('{{name}}', card.name || '')
         .replaceAll('{{id}}', card.id || '')
         .replaceAll('{{positioning}}', card.positioning || '')
         .replaceAll('{{timePeriod}}', cfg.timePeriod || '')
         .replaceAll('{{year}}', year);
+
+    // Replace variables (Chinese Bracket Alias - user friendly)
+    template = template.replaceAll('【銀行名稱】', card.bank || '')
+        .replaceAll('【卡片名稱】', card.name || '')
+        .replaceAll('【卡片編號】', card.id || '')
+        .replaceAll('【市場定位】', card.positioning || '')
+        .replaceAll('【時間週期】', cfg.timePeriod || '')
+        .replaceAll('【年份】', year);
 
     return template;
 }

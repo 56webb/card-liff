@@ -1328,44 +1328,56 @@
 
                 if (!userId) throw new Error("無法取得 User ID (Save)");
 
-                console.log("Saving to:", GAS_URL); // Debug URL
+                console.log("Saving to:", GAS_URL);
 
-                const res = await fetch(GAS_URL, {
-                    method: 'POST',
-                    // Google Apps Script 有時對 CORS 很嚴格，用 text/plain 通常最穩
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({
-                        action: "save_settings",
-                        idToken,
-                        userId,
-                        myWallet,
-                        payMap,
-                        profile: userProfile
-                    })
-                });
+                // 設定 30 秒 Timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-                const text = await res.text();
-                console.log("Server Response Raw:", text); // Debug Raw Response
-
-                let data;
                 try {
-                    data = JSON.parse(text);
-                } catch (e) {
-                    // 如果回傳的是 HTML (通常是 404 或 Google 錯誤頁面)，這裡會報錯
-                    throw new Error(`伺服器回應非 JSON (可能網址錯了或權限不足): ${text.substring(0, 100)}...`);
-                }
+                    const res = await fetch(GAS_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                        body: JSON.stringify({
+                            action: "save_settings",
+                            idToken,
+                            userId,
+                            myWallet,
+                            payMap,
+                            profile: userProfile
+                        }),
+                        signal: controller.signal
+                    });
+                    clearTimeout(timeoutId); // 清除 Timeout
 
-                if (data.success || data.status === 'success') {
-                    // Update Cache on successful save
-                    localStorage.setItem('cardway_cache_v3', JSON.stringify({
-                        myWallet,
-                        payMap,
-                        profile: userProfile,
-                        timestamp: new Date().getTime()
-                    }));
-                    finishSave(btn, oldText);
-                } else {
-                    throw new Error(data.msg || "未知伺服器錯誤");
+                    const text = await res.text();
+                    console.log("Server Response Raw:", text);
+
+                    let data;
+                    try {
+                        data = JSON.parse(text);
+                    } catch (e) {
+                        throw new Error(`伺服器回應非 JSON (可能網址錯了或權限不足): ${text.substring(0, 100)}...`);
+                    }
+
+                    if (data.success || data.status === 'success') {
+                        // Update Cache on successful save
+                        localStorage.setItem('cardway_cache_v3', JSON.stringify({
+                            myWallet,
+                            payMap,
+                            profile: userProfile,
+                            timestamp: new Date().getTime()
+                        }));
+                        finishSave(btn, oldText);
+                    } else {
+                        throw new Error(data.msg || "未知伺服器錯誤");
+                    }
+                } catch (fetchError) {
+                    if (fetchError.name === 'AbortError') {
+                        throw new Error("請求逾時 (30秒)，伺服器忙碌中，請稍後再試。");
+                    } else {
+                        throw fetchError;
+                    }
                 }
             } catch (e) {
                 console.error("Save Failed:", e);

@@ -1,7 +1,7 @@
 import './style.css'
 
 // =============================================
-// 信用卡爬蟲核心邏輯 (v2026.02.11 Fix 3 - Prompt Template Enhanced)
+// 信用卡爬蟲核心邏輯 (v2026.02.11 Fix 4 - Drive Upload + Prompt Presets)
 // =============================================
 
 // --- 狀態管理 ---
@@ -18,16 +18,18 @@ const CONFIG_KEYS = {
     MODEL: 'CRAWLER_MODEL',
     TIME_PERIOD: 'CRAWLER_TIME_PERIOD',
     PROMPT_TEMPLATE: 'CRAWLER_PROMPT_TEMPLATE',
+    PROMPT_PRESETS: 'CRAWLER_PROMPT_PRESETS', // 新增：Prompt 範本儲存
 };
 
-const DEFAULT_PROMPT_TEMPLATE = `請擔任專業的「金融產品條款分析師」，針對【{{bank}} {{name}}】進行 {{timePeriod}} 的最新權益深度搜索。
+// --- Default Templates ---
+const TEMPLATE_STANDARD = `請擔任專業的「金融產品條款分析師」，針對【{{bank}} {{name}}】進行 {{timePeriod}} 的最新權益深度搜索。
 
 請務必進行深度聯網搜尋，優先查找該銀行的官方網頁、權益手冊 PDF。
 【重要】請模仿 Perplexity 網頁版的深度搜尋模式：
 1. 先搜尋該卡片的官方網頁。
 2. 確認是否有「2026」或「115年」的權益更新公告。
-3. 若無明確 2026 公告，請查看最新的權益手冊有效期限（通常延續至 2026/06 或 2026/12）。
-4. 若確實無法確認，請標註「⚠️ 待確認」，但請盡量從現有資料推斷（例如：2025 下半年權益通常延續至 2026 初）。
+3. 若無明確 2026 公告，請查看最新的權益手冊有效期限。
+4. 若確實無法確認，請標註「⚠️ 待確認」。
 確保資訊完整且正確。
 
 🆔 卡片編號：{{id}}
@@ -40,74 +42,80 @@ const DEFAULT_PROMPT_TEMPLATE = `請擔任專業的「金融產品條款分析�
 |------|------|
 | 發卡銀行 | （填入） |
 | 卡片全名 | （填入） |
-| 卡片等級 | 普卡/金卡/白金/御璽/鼎極/無限 |
-| 卡組織 | Visa/MasterCard/JCB/AMEX |
+| 卡片等級 | （填入） |
 | 年費 | 金額、首年是否免費 |
-| 免年費條件 | 刷卡門檻/自動扣繳/數位帳戶等 |
 | 官方連結 | URL |
 
 ## 回饋機制總覽
-| 消費場景 | 回饋類型 | 回饋率 | 每月上限 | 換算可刷額度 | 需登錄 | 備註 |
-|----------|----------|--------|----------|-------------|--------|------|
-| 國內一般消費 | | | | | | |
-| 海外一般消費 | | | | | | |
-| 日本消費 | | | | | | |
-| 韓國消費 | | | | | | |
-| 網購 (momo/蝦皮/PChome) | | | | | | |
-| 行動支付（請列出所有支援的：Apple Pay / Google Pay / LINE Pay / Samsung Pay / 街口 / 台灣 Pay / 悠遊付 / Pi 錢包等，每種分開列一行） | | | | | | |
-| 加油 | | | | | | |
-| 超市/量販 | | | | | | |
-| 百貨公司 | | | | | | |
-| 餐飲 | | | | | | |
-| 交通 (台鐵/高鐵/捷運) | | | | | | |
-| 電子票證自動加值 | | | | | | |
-| 外送平台 | | | | | | |
-| 串流訂閱 | | | | | | |
-| 保費 | | | | | | |
-| 繳稅 | | | | | | |
-| 其他特殊回饋（若有上述未列出的獨特優惠，請補充在此） | | | | | | |
+| 消費場景 | 回饋類型 | 回饋率 | 每月上限 | 備註 |
+|----------|----------|--------|----------|------|
+| 國內一般消費 | | | | |
+| 海外一般消費 | | | | |
+| 指定通路加碼 | | | | |
 
-（僅填入該卡實際有優惠的場景，無優惠的場景請刪除該列）
-
-## 指定通路加碼明細
-（列出該卡特有的聯名/合作通路，例如：Costco、新光三越、momo、蝦皮等）
-- 通路名稱：回饋 % / 上限 / 條件
-
-## 回饋的魔鬼細節
-- **回饋類型**：現金回饋 / 紅利點數 / 哩程（兌換比率）
-- **回饋上限計算週期**：每月 / 每期帳單 / 每季 / 每年
-- **排除項目**：（哪些消費不列入回饋？例如：繳費、代扣、保費、悠遊加值等）
-- **需登錄活動**：是 / 否（登錄方式與截止日）
-- **基本門檻**：是否需達單月最低消費才啟動回饋
-- **新戶 vs 舊戶**：首刷禮差異、限定優惠
-
-## 海外消費細節
-- 海外交易手續費：（%）
-- 是否有手續費補貼/減免
-- DCC（動態貨幣轉換）注意事項
-
-## 附加權益
-- **保險**：旅平險 / 旅不便險 / 購物保障 / 不便險理賠額度
-- **機場**：免費接送次數 / 貴賓室 / 機場停車
-- **分期**：0 利率分期（期數/門檻/適用通路）
-- **其他**：電影優惠 / 停車優惠 / 聯名特約
+## 回饋的魔鬼細節 (排除項目、上限計算、需登錄活動等)
 
 ## 優缺點總結
-### 👍 優點（3-5 點）
-### 👎 缺點（2-3 點）
-
-## 最適合的使用族群
-（用 1-2 句話描述這張卡最適合什麼樣的人）
 
 ## 資料來源
-（附上查詢到的官方連結）
+`;
 
----
-⚠️ 注意事項：
-1. 只提供確認過的資訊，無法確認的標記「⚠️ 待確認」
-2. 回饋上限金額與換算可刷額度請用**粗體**
-3. 若 {{year}} 最新公告與舊資料衝突，以最新為準並註明
-4. 不要編造不存在的優惠或條件`;
+const TEMPLATE_DEV_JSON = `## 模式二：開發者模式 (JSON Format)
+
+請針對【{{bank}} {{name}}】({{timePeriod}}) 進行深度調研，並將所有權益資料結構化為 JSON 格式。
+
+輸出格式要求：
+請務必將所有輸出內容全部包在一個 Markdown Code Block (json) 裡面。
+
+JSON 結構需包含：
+1. "基本資料": { 銀行名稱, 卡片名稱, 適用期間, 年費, 核心特色 }
+2. "回饋機制": { 最高回饋, 方案: [ {名稱, 比例, 通路} ] }
+3. "指定通路清單": { 行動支付: [], 百貨: [], 旅遊海外: [], 數位: [] ... }
+4. "排除項目": [ ... ]
+5. "點數系統": { 名稱, 價值, 有效期 }
+6. "特殊優惠": [ ... ]
+
+🆔 卡片編號：{{id}}
+`;
+
+const TEMPLATE_AUDIT = `## 模式三：陷阱排查模式 (Audit Mode)
+
+請針對【{{bank}} {{name}}】({{timePeriod}}) 進行嚴格的條款審查，重點列出「地雷區」。
+
+# {{bank}} - {{name}} 2026 陷阱排查報告
+
+### 地雷區一：方案切換規則
+- **官方規則說明**：
+- **常見誤解**：
+- **實際案例**：
+- **破解策略**：
+
+### 地雷區二：絕對不回饋的排除項目
+- **官方規則說明**：
+- **常見誤解**：
+- **實際案例**：
+- **破解策略**：
+
+### 地雷區三：第三方支付認列問題
+- **官方規則說明**：
+- **常見誤解**：
+- **實際案例**：
+- **破解策略**：
+
+### 地雷區四：百貨店中櫃問題
+### 地雷區五：分期付款回饋規則
+### 地雷區六：點數有效期限與兌換限制
+
+**資料來源**：請詳細列出參考的官方文件連結。
+`;
+
+const DEFAULT_PRESETS = {
+    '預設標準版': TEMPLATE_STANDARD,
+    '開發者模式 (JSON)': TEMPLATE_DEV_JSON,
+    '陷阱排查模式': TEMPLATE_AUDIT
+};
+
+const DEFAULT_PROMPT_TEMPLATE = TEMPLATE_STANDARD;
 
 function loadConfig() {
     return {
@@ -116,6 +124,7 @@ function loadConfig() {
         model: localStorage.getItem(CONFIG_KEYS.MODEL) || 'sonar-pro',
         timePeriod: localStorage.getItem(CONFIG_KEYS.TIME_PERIOD) || '2026 年上半年（2026/01/01 - 2026/06/30）',
         promptTemplate: localStorage.getItem(CONFIG_KEYS.PROMPT_TEMPLATE) || DEFAULT_PROMPT_TEMPLATE,
+        presets: JSON.parse(localStorage.getItem(CONFIG_KEYS.PROMPT_PRESETS)) || DEFAULT_PRESETS
     };
 }
 
@@ -125,6 +134,9 @@ function saveConfig(cfg) {
     localStorage.setItem(CONFIG_KEYS.MODEL, cfg.model);
     localStorage.setItem(CONFIG_KEYS.TIME_PERIOD, cfg.timePeriod);
     localStorage.setItem(CONFIG_KEYS.PROMPT_TEMPLATE, cfg.promptTemplate);
+    if (cfg.presets) {
+        localStorage.setItem(CONFIG_KEYS.PROMPT_PRESETS, JSON.stringify(cfg.presets));
+    }
 }
 
 // --- UI 元件 ---
@@ -167,6 +179,9 @@ function init() {
     if (inputTimePeriod) inputTimePeriod.value = cfg.timePeriod;
     if (inputPromptTemplate) inputPromptTemplate.value = cfg.promptTemplate;
 
+    // 初始化 Presets Dropdown
+    renderPresets(cfg.presets);
+
     // 如果已有設定，自動載入
     if (cfg.pplxKey && cfg.gasUrl) {
         addLog('✅ 偵測到已儲存的設定，API Key 與 GAS URL 已就緒。');
@@ -176,17 +191,31 @@ function init() {
     bindEvents();
 }
 
+function renderPresets(presets) {
+    const select = document.getElementById('select-prompt-preset');
+    if (!select) return;
+
+    // 清空除了第一項以外的選項
+    select.innerHTML = '<option value="">-- 切換 Prompt 範本 --</option>';
+
+    Object.keys(presets).forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        select.appendChild(opt);
+    });
+}
+
 // --- 事件綁定 ---
 function bindEvents() {
     // 儲存設定
     document.getElementById('btn-save-config')?.addEventListener('click', () => {
-        const cfg = {
-            pplxKey: document.getElementById('input-pplx-key').value.trim(),
-            gasUrl: document.getElementById('input-gas-url').value.trim(),
-            model: document.getElementById('select-pplx-model').value,
-            timePeriod: document.getElementById('input-time-period').value.trim(),
-            promptTemplate: document.getElementById('input-prompt-template').value,
-        };
+        const cfg = loadConfig(); // 讀取現有，避免覆蓋 presets
+        cfg.pplxKey = document.getElementById('input-pplx-key').value.trim();
+        cfg.gasUrl = document.getElementById('input-gas-url').value.trim();
+        cfg.model = document.getElementById('select-pplx-model').value;
+        cfg.timePeriod = document.getElementById('input-time-period').value.trim();
+        cfg.promptTemplate = document.getElementById('input-prompt-template').value;
 
         if (!cfg.pplxKey) { alert('請輸入 Perplexity API Key'); return; }
         if (!cfg.gasUrl) { alert('請輸入 GAS WebApp URL'); return; }
@@ -194,6 +223,54 @@ function bindEvents() {
         saveConfig(cfg);
         addLog('💾 設定已儲存到瀏覽器。', 'success');
     });
+
+    // Preset 相關事件
+    document.getElementById('select-prompt-preset')?.addEventListener('change', (e) => {
+        const name = e.target.value;
+        if (!name) return;
+
+        const cfg = loadConfig();
+        if (cfg.presets[name]) {
+            document.getElementById('input-prompt-template').value = cfg.presets[name];
+            // 自動儲存當前選擇
+            cfg.promptTemplate = cfg.presets[name];
+            saveConfig(cfg);
+            addLog(`📝 已載入範本: ${name}`, 'info');
+        }
+    });
+
+    document.getElementById('btn-save-preset')?.addEventListener('click', () => {
+        const currentContent = document.getElementById('input-prompt-template').value;
+        if (!currentContent) return;
+
+        const name = prompt('請輸入新範本名稱：', '我的自訂範本');
+        if (name) {
+            const cfg = loadConfig();
+            cfg.presets[name] = currentContent;
+            cfg.promptTemplate = currentContent;
+            saveConfig(cfg);
+            renderPresets(cfg.presets);
+            // 選中新項目
+            document.getElementById('select-prompt-preset').value = name;
+            addLog(`💾 已儲存新範本: ${name}`, 'success');
+        }
+    });
+
+    document.getElementById('btn-delete-preset')?.addEventListener('click', () => {
+        const select = document.getElementById('select-prompt-preset');
+        const name = select.value;
+        if (!name) { alert('請先選擇一個範本！'); return; }
+
+        if (confirm(`確定要刪除範本「${name}」嗎？`)) {
+            const cfg = loadConfig();
+            delete cfg.presets[name];
+            saveConfig(cfg);
+            renderPresets(cfg.presets);
+            select.value = "";
+            addLog(`🗑️ 已刪除範本: ${name}`, 'warning');
+        }
+    });
+
 
     // 載入卡片
     document.getElementById('btn-load-cards')?.addEventListener('click', loadCardsFromSheet);
@@ -216,6 +293,7 @@ function bindEvents() {
     // 下載
     document.getElementById('btn-download-zip')?.addEventListener('click', () => downloadZip('all'));
     document.getElementById('btn-download-success')?.addEventListener('click', () => downloadZip('success'));
+    document.getElementById('btn-upload-drive')?.addEventListener('click', uploadToDrive);
 
     // 預覽
     document.getElementById('select-preview')?.addEventListener('change', (e) => {
@@ -240,26 +318,18 @@ async function loadCardsFromSheet() {
     addLog('📥 正在從 Google Sheet 載入卡片清單...', 'warning');
 
     try {
-        // [Hybrid Fix] 同時將參數放在 URL 與 Body
-        // URL 參數保證 e.parameter 能讀取到 (最穩)
-        // Body 供後端 parse (備用)
         const separator = gasUrl.includes('?') ? '&' : '?';
         const targetUrl = `${gasUrl}${separator}action=getCardList&_t=${Date.now()}`;
-
-        // addLog(`📡 連線中...`, 'info'); // Option: Log URL for debug
 
         const response = await fetch(targetUrl, {
             method: 'POST',
             headers: {
-                // 使用 text/plain 避免 OPTIONS Preflight
                 'Content-Type': 'text/plain;charset=utf-8',
             },
-            // 保留 Body 以備後端 POST 邏輯使用
             body: JSON.stringify({ action: 'getCardList' })
         });
 
         const data = await response.json();
-        console.log('GAS Response:', data); // Debug Log
 
         if (data.status === 'ok' && data.cards) {
             cards = data.cards;
@@ -268,7 +338,6 @@ async function loadCardsFromSheet() {
             addLog(`✅ 成功載入 ${cards.length} 張卡片！`, 'success');
             updateGuideStep(2);
         } else {
-            // 詳細顯示回傳內容以便除錯
             const debugMsg = JSON.stringify(data);
             addLog(`❌ 載入失敗: ${data.message || '未知錯誤'} (Response: ${debugMsg})`, 'error');
         }
@@ -277,7 +346,6 @@ async function loadCardsFromSheet() {
         console.error(err);
         addLog(`⚠️ POST 失敗 (${err.message})，嘗試僅使用 GET...`, 'warning');
         try {
-            // 純 GET 請求
             const separator = gasUrl.includes('?') ? '&' : '?';
             const url = `${gasUrl}${separator}action=getCardList&_t=${Date.now()}`;
             const res = await fetch(url);
@@ -333,7 +401,6 @@ function renderCardTable(filterText = '') {
     `;
     }).join('');
 
-    // 勾選事件
     document.querySelectorAll('.card-check').forEach(cb => {
         cb.addEventListener('change', updateSelectedCount);
     });
@@ -424,8 +491,6 @@ async function callPerplexity(card) {
             max_tokens: 4000,
             temperature: 0.1,
             return_citations: true,
-            // 移除 recency_filter 以避免漏掉舊但有效的官網頁面
-            // search_recency_filter: 'year', 
         }),
         signal: abortController?.signal,
     });
@@ -438,14 +503,11 @@ async function callPerplexity(card) {
     const data = await response.json();
     let markdown = data.choices?.[0]?.message?.content || '';
 
-    // 加上標題與元資料
     const header = `# ${card.bank} - ${card.name} \n\n > 🆔 編號：${card.id} \n > 🏷️ 核心定位：${card.positioning} \n > 📅 資料更新日期：${new Date().toISOString().split('T')[0]} \n\n`;
 
-    // 如果 AI 回覆已經包含標題，就不重複加
     if (!markdown.startsWith('# ')) {
         markdown = header + markdown;
     } else {
-        // 確保元資料存在
         if (!markdown.includes('編號')) {
             markdown = markdown.replace(/^# .+\n/, `$ &\n > 🆔 編號：${card.id} \n > 🏷️ 核心定位：${card.positioning} \n > 📅 資料更新日期：${new Date().toISOString().split('T')[0]} \n`);
         }
@@ -472,7 +534,6 @@ async function startCrawl() {
     isPaused = false;
     abortController = new AbortController();
 
-    // UI 更新
     document.getElementById('btn-start').disabled = true;
     document.getElementById('btn-pause').disabled = false;
     document.getElementById('progress-wrapper').style.display = 'block';
@@ -487,7 +548,6 @@ async function startCrawl() {
     addLog(`🚀 開始爬取 ${total} 張卡片(模型: ${cfg.model})`, 'warning');
 
     for (let i = 0; i < selectedCards.length; i++) {
-        // 檢查暫停
         while (isPaused) {
             await new Promise(r => setTimeout(r, 500));
         }
@@ -499,14 +559,12 @@ async function startCrawl() {
 
         const card = selectedCards[i];
 
-        // 跳過已完成的
         if (results[card.id]?.status === 'success') {
             completed++;
             updateProgress(completed, total, successCount, failCount, startTime);
             continue;
         }
 
-        // 標記為執行中
         results[card.id] = { status: 'running', selected: true };
         renderCardTable(document.getElementById('input-filter')?.value || '');
 
@@ -533,13 +591,11 @@ async function startCrawl() {
         updateProgress(completed, total, successCount, failCount, startTime);
         renderCardTable(document.getElementById('input-filter')?.value || '');
 
-        // 延遲 1.5 秒避免 API 限速
         if (i < selectedCards.length - 1 && isRunning) {
             await new Promise(r => setTimeout(r, 1500));
         }
     }
 
-    // 完成
     isRunning = false;
     document.getElementById('btn-start').disabled = false;
     document.getElementById('btn-pause').disabled = true;
@@ -548,7 +604,6 @@ async function startCrawl() {
         document.getElementById('btn-retry-failed').style.display = 'inline-block';
     }
 
-    // 顯示結果區
     if (successCount > 0) {
         showResultsSection(successCount, failCount);
         updateGuideStep(3);
@@ -573,17 +628,13 @@ async function retryFailed() {
         return;
     }
 
-    // 清除失敗狀態
     failedCards.forEach(c => {
         results[c.id] = { status: undefined, selected: true };
     });
 
-    // 勾選失敗的卡片
     renderCardTable();
-
     addLog(`🔄 準備重試 ${failedCards.length} 張失敗的卡片...`, 'warning');
 
-    // 手動標記為選中並啟動
     document.querySelectorAll('.card-check').forEach(cb => {
         const idx = parseInt(cb.dataset.idx);
         const card = cards[idx];
@@ -593,7 +644,6 @@ async function retryFailed() {
     await startCrawl();
 }
 
-// --- 進度更新 ---
 function updateProgress(completed, total, success, fail, startTime) {
     const percent = Math.round((completed / total) * 100);
     const elapsed = (Date.now() - startTime) / 1000;
@@ -613,7 +663,6 @@ function updateProgress(completed, total, success, fail, startTime) {
     document.getElementById('stat-skip').textContent = `⏭️ ${completed - success - fail}`;
 }
 
-// --- 結果區 ---
 function showResultsSection(success, fail) {
     const section = document.getElementById('section-results');
     if (section) section.style.display = 'block';
@@ -621,7 +670,6 @@ function showResultsSection(success, fail) {
     document.getElementById('result-summary').textContent =
         `成功 ${success} 張 / 失敗 ${fail} 張`;
 
-    // 填充預覽下拉
     const select = document.getElementById('select-preview');
     if (select) {
         select.innerHTML = '<option value="">-- 選擇卡片預覽 --</option>';
@@ -653,17 +701,13 @@ function previewCard(cardId) {
     }
 }
 
-// 給 HTML onclick 用
 window.previewById = (cardId) => {
     const select = document.getElementById('select-preview');
     if (select) select.value = cardId;
     previewCard(cardId);
-
-    // 捲動到預覽區
     document.getElementById('section-results')?.scrollIntoView({ behavior: 'smooth' });
 };
 
-// --- ZIP 下載 ---
 async function downloadZip(mode = 'all') {
     const zip = new JSZip();
     let count = 0;
@@ -673,8 +717,20 @@ async function downloadZip(mode = 'all') {
         if (!r?.markdown) return;
         if (mode === 'success' && r.status !== 'success') return;
 
-        // 檔名格式：整合編號_銀行_卡名.md
-        const safeName = `${card.id}_${card.bank}_${card.name}`.replace(/[\/\\:*?"<>|]/g, '_');
+        const cfg = loadConfig();
+        const dates = cfg.timePeriod.match(/(\d{4})[\/-](\d{2})[\/-](\d{2})/g);
+        let dateSuffix = '';
+        if (dates && dates.length >= 2) {
+            const start = dates[0].replace(/[\/-]/g, '');
+            const end = dates[1].replace(/[\/-]/g, '');
+            dateSuffix = `-${start}-${end}`;
+        } else {
+            const y = new Date().getFullYear();
+            dateSuffix = `-${y}0101-${y}1231`;
+        }
+
+        const cleanId = card.id.replace(/[\/\\:*?"<>|]/g, '-');
+        const safeName = `${cleanId}${dateSuffix}`;
         zip.file(`${safeName}.md`, r.markdown);
         count++;
     });
@@ -701,5 +757,72 @@ async function downloadZip(mode = 'all') {
     }
 }
 
-// --- 啟動 ---
+async function uploadToDrive() {
+    const successCards = cards.filter(c => results[c.id]?.status === 'success');
+    if (successCards.length === 0) {
+        alert('沒有成功的卡片資料可上傳！');
+        return;
+    }
+
+    const gasUrl = document.getElementById('input-gas-url').value.trim();
+    if (!gasUrl) { alert('請先設定 GAS WebApp URL！'); return; }
+
+    if (!confirm(`確定要將 ${successCards.length} 份 Markdown 文件上傳到指定的 Google Drive 資料夾嗎？`)) return;
+
+    addLog(`☁️ 準備上傳 ${successCards.length} 份文件到 Google Drive...`, 'warning');
+
+    const btn = document.getElementById('btn-upload-drive');
+    if (btn) btn.disabled = true;
+
+    let uploadCount = 0;
+    const cfg = loadConfig();
+
+    for (let i = 0; i < successCards.length; i++) {
+        const card = successCards[i];
+        const r = results[card.id];
+
+        const dates = cfg.timePeriod.match(/(\d{4})[\/-](\d{2})[\/-](\d{2})/g);
+        let dateSuffix = '';
+        if (dates && dates.length >= 2) {
+            const start = dates[0].replace(/[\/-]/g, '');
+            const end = dates[1].replace(/[\/-]/g, '');
+            dateSuffix = `-${start}-${end}`;
+        } else {
+            const y = new Date().getFullYear();
+            dateSuffix = `-${y}0101-${y}1231`;
+        }
+        const cleanId = card.id.replace(/[\/\\:*?"<>|]/g, '-');
+        const fileName = `${cleanId}${dateSuffix}.md`;
+
+        addLog(`⬆️ [${i + 1}/${successCards.length}] 上傳中: ${fileName}...`);
+
+        try {
+            const response = await fetch(gasUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({
+                    action: 'saveToDrive',
+                    fileName: fileName,
+                    fileContent: r.markdown
+                })
+            });
+            const data = await response.json();
+
+            if (data.status === 'error') {
+                addLog(`❌ 上傳失敗: ${data.message}`, 'error');
+            } else {
+                addLog(`✅ 上傳成功: ${fileName}`, 'success');
+                uploadCount++;
+            }
+        } catch (err) {
+            addLog(`❌ 網路連線錯誤: ${err.message}`, 'error');
+        }
+
+        await new Promise(r => setTimeout(r, 800));
+    }
+
+    addLog(`🎉 上傳作業結束！成功 ${uploadCount} / ${successCards.length} 份`, 'success');
+    if (btn) btn.disabled = false;
+}
+
 init();

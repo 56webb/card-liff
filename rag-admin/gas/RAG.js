@@ -1,4 +1,5 @@
 const DRIVE_FOLDER_ID = '1ln--Q37vK1njIaI-1qz7Yf-b9hOfnkCc';
+const UPLOAD_TARGET_FOLDER_ID = '1Wnj1izxNH_Bql7vLYhHn_OnJobaQW5zR'; // 使用者指定上傳資料夾
 const MAP_PROP_KEY = 'RAG_FILENAME_MAP';
 
 /**
@@ -337,6 +338,13 @@ function doPost(e) {
       if (postData.model) e.parameter.model = postData.model;
     }
 
+    // 處理 saveToDrive 參數
+    if (postData.fileName && postData.fileContent) {
+      if (!e.parameter) e.parameter = {};
+      e.parameter.fileName = postData.fileName;
+      e.parameter.fileContent = postData.fileContent;
+    }
+
 
     // 3. 轉發給 doGet
     return doGet(e);
@@ -429,6 +437,28 @@ function doGet(e) {
         const storeName = props.getProperty('FILE_STORE_NAME');
         const ragResult = askRAG(question, storeName, apiKey, model);
         result = ragResult;
+      }
+    } else if (action === 'saveToDrive') {
+      // 儲存檔案到 Google Drive
+      const fileName = params.fileName;
+      const fileContent = params.fileContent;
+
+      if (!fileName || !fileContent) {
+        result.status = 'error';
+        result.message = '缺少 fileName 或 fileContent 參數';
+      } else {
+        try {
+          const folder = DriveApp.getFolderById(UPLOAD_TARGET_FOLDER_ID);
+          // 檢查是否已存在同名檔案? 若有則建立副本或覆寫? 
+          // Drive 允許同名，這裡直接建立新檔
+          const file = folder.createFile(fileName, fileContent, MimeType.PLAIN_TEXT);
+          result.message = `成功上傳: ${fileName}`;
+          result.fileId = file.getId();
+          result.fileUrl = file.getUrl();
+        } catch (driveErr) {
+          result.status = 'error';
+          result.message = `Drive 儲存失敗: ${driveErr.toString()}`;
+        }
       }
     }
   } catch (err) {

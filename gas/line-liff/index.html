@@ -1551,6 +1551,27 @@
                         settingsDiv.appendChild(rightsDiv);
                     }
 
+                    // 4. HSBC Cashback Doubling (Only for HSBC Cashback Card)
+                    if (cardName.includes('匯鑽卡')) {
+                        const rightsDiv = document.createElement('div');
+                        rightsDiv.innerHTML = `<div style="font-size:12px; color:var(--text-sub); margin-bottom:6px;">特殊權益</div>`;
+                        const rightsCont = document.createElement('div');
+                        rightsCont.className = 'chip-container';
+
+                        const right = '啟動回饋翻倍';
+                        const rBtn = document.createElement('div');
+                        const hasRight = currentRights.includes(right);
+                        rBtn.className = `mini-chip ${hasRight ? 'selected' : ''}`;
+                        rBtn.innerText = right;
+                        rBtn.onclick = (e) => {
+                            e.stopPropagation();
+                            toggleCardRight(bank, cardName, right);
+                        };
+                        rightsCont.appendChild(rBtn);
+                        rightsDiv.appendChild(rightsCont);
+                        settingsDiv.appendChild(rightsDiv);
+                    }
+
                     item.appendChild(settingsDiv);
                 }
 

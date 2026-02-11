@@ -85,6 +85,16 @@
                     <details>
                         <summary style="cursor: pointer; color: var(--neon-cyan); margin-bottom: 0.5rem;">📝 進階：自訂
                             Prompt 提示詞 (點擊展開)</summary>
+
+                        <div class="preset-controls"
+                            style="display: flex; gap: 10px; margin-bottom: 10px; align-items: center;">
+                            <select id="select-prompt-preset" class="model-select" style="flex: 1;">
+                                <option value="">-- 載入範本 --</option>
+                            </select>
+                            <button id="btn-save-preset" class="cyber-btn sm">💾 另存</button>
+                            <button id="btn-delete-preset" class="cyber-btn sm"
+                                style="border-color: #ff3e3e; color: #ff3e3e;">🗑️</button>
+                        </div>
                         <textarea id="input-prompt-template" rows="15" class="cyber-input"
                             style="width:100%; font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; line-height: 1.4;"></textarea>
                         <p class="form-hint">可用變數：{{bank}}, {{name}}, {{id}}, {{positioning}}, {{timePeriod}}</p>
@@ -163,6 +173,8 @@
                 <div class="result-actions">
                     <button id="btn-download-zip" class="cyber-btn primary lg">📦 全部下載 ZIP</button>
                     <button id="btn-download-success" class="cyber-btn sm">✅ 僅下載成功的</button>
+                    <button id="btn-upload-drive" class="cyber-btn primary lg"
+                        style="border-color: #9d4edd; color: #e0aaff;">☁️ 上傳到雲端硬碟</button>
                     <span id="result-summary" class="result-summary"></span>
                 </div>
 
